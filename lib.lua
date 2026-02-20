@@ -13,10 +13,10 @@ splash.ResetOnSpawn = false
 splash.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 80)
-frame.Position = UDim2.new(0.5, -100, 0.5, -40)
-frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-frame.BackgroundTransparency = 0
+frame.Size = UDim2.new(0, 200, 0, 60)
+frame.Position = UDim2.new(0.5, -100, 0, -70)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+frame.BackgroundTransparency = 0.3
 frame.BorderSizePixel = 0
 frame.Parent = splash
 
@@ -24,23 +24,51 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 12)
 corner.Parent = frame
 
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 40)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 25))
+})
+gradient.Rotation = 90
+gradient.Parent = frame
+
 local text = Instance.new("TextLabel")
-text.Size = UDim2.new(1, 0, 1, 0)
+text.Size = UDim2.new(0.6, -5, 1, 0)
+text.Position = UDim2.new(0, 10, 0, 0)
 text.BackgroundTransparency = 1
 text.Text = "YUUGTRL"
-text.TextColor3 = Color3.fromRGB(170, 85, 255)
+text.TextColor3 = Color3.fromRGB(255, 255, 255)
 text.Font = Enum.Font.GothamBold
-text.TextSize = 30
+text.TextSize = 24
+text.TextXAlignment = Enum.TextXAlignment.Left
 text.Parent = frame
 
-task.wait(1.5)
+local loadedText = Instance.new("TextLabel")
+loadedText.Size = UDim2.new(0.4, -5, 1, 0)
+loadedText.Position = UDim2.new(0.6, 0, 0, 0)
+loadedText.BackgroundTransparency = 1
+loadedText.Text = "loaded"
+loadedText.TextColor3 = Color3.fromRGB(255, 255, 255)
+loadedText.Font = Enum.Font.Gotham
+loadedText.TextSize = 16
+loadedText.TextXAlignment = Enum.TextXAlignment.Left
+loadedText.Parent = frame
 
-local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-local tween = TweenService:Create(frame, tweenInfo, {BackgroundTransparency = 1})
-tween:Play()
-TweenService:Create(text, tweenInfo, {TextTransparency = 1}):Play()
+frame:TweenPosition(UDim2.new(0.5, -100, 0, 30), "Out", "Quad", 0.9, true)
 
-tween.Completed:Connect(function()
+task.wait(0.4)
+
+local textColorTween = TweenService:Create(text, TweenInfo.new(1.0, Enum.EasingStyle.Quad), {TextColor3 = Color3.fromRGB(170, 85, 255)})
+textColorTween:Play()
+
+task.wait(1.6)
+
+local fadeTween = TweenService:Create(frame, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {BackgroundTransparency = 1})
+fadeTween:Play()
+TweenService:Create(text, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
+TweenService:Create(loadedText, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
+
+fadeTween.Completed:Connect(function()
     splash:Destroy()
 end)
 
@@ -183,8 +211,6 @@ function YUUGTRL:MakeButton(button, color, style)
             self:RestoreButtonStyle(button, btnColor) 
         end)
     elseif btnStyle == "toggle" then
-        -- Toggle style НЕ МЕНЯЕТ toggled state автоматически
-        -- Просто применяет визуальный эффект
     elseif btnStyle == "hover" then
         button.MouseEnter:Connect(function() 
             self:LightenButton(button) 
