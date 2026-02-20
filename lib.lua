@@ -1,350 +1,356 @@
-local YUUGTRL = loadstring(game:HttpGet("https://raw.githubusercontent.com/YUUGTRELDYS/YUUGTRL.github.io/refs/heads/main/lib.lua"))()
-
+local YUUGTRL = {}
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
 local player = Players.LocalPlayer
-
-local ALLOWED_PLACE_ID = 7346416636
-if game.PlaceId ~= ALLOWED_PLACE_ID then return end
-
-local currentLanguage = "English"
-local scriptVisible = true
-local currentTransparency = 0
 local isMobile = UserInputService.TouchEnabled
 
-local languages = {
-    English = {
-        title = "TRADE SCRIPT",
-        onBoard = "On Board",
-        accepted = "Accepted",
-        scamMode = "Scam Mode",
-        autoGroup = "Auto Group",
-        autoVip = "Auto Vip/Gold",
-        xray = "XRAY",
-        jump = "JUMP",
-        enableScam = "ENABLE SCAM (G)",
-        disableScam = "DISABLE SCAM (G)",
-        xrayBtn = "XRAY",
-        jumpBtn = "JUMP",
-        resetBtn = "RESET",
-        settings = "Settings",
-        transparency = "Transparency",
-        language = "Language"
-    },
-    Russian = {
-        title = "ТРЕЙД СКРИПТ",
-        onBoard = "На доске",
-        accepted = "Принято",
-        scamMode = "Режим скама",
-        autoGroup = "Авто группа",
-        autoVip = "Авто Vip/Золото",
-        xray = "РЕНТГЕН",
-        jump = "ПРЫЖОК",
-        enableScam = "ВКЛ СКАМ (G)",
-        disableScam = "ВЫКЛ СКАМ (G)",
-        xrayBtn = "РЕНТГЕН",
-        jumpBtn = "ПРЫЖОК",
-        resetBtn = "СБРОС",
-        settings = "Настройки",
-        transparency = "Прозрачность",
-        language = "Язык"
-    }
-}
-
--- КАСТОМНАЯ ТЕМА - ЗДЕСЬ МОЖНО МЕНЯТЬ ВСЁ!!!
-local customTheme = {
-    -- Основные цвета
-    BackgroundColor = Color3.fromRGB(20, 20, 30),      -- Главный фон
-    SecondaryColor = Color3.fromRGB(35, 35, 50),      -- Заголовок
-    AccentColor = Color3.fromRGB(100, 80, 255),       -- Акцентный цвет
-    TextColor = Color3.fromRGB(255, 255, 255),        -- Основной текст
-    TextSecondaryColor = Color3.fromRGB(180, 180, 220), -- Второстепенный текст
-    SuccessColor = Color3.fromRGB(80, 255, 120),      -- Успех
-    ErrorColor = Color3.fromRGB(255, 70, 70),         -- Ошибка
+-- Уведомление о загрузке
+local function showNotify()
+    local notifyGui = Instance.new("ScreenGui")
+    notifyGui.Name = "YUUGTRL_Notify"
+    notifyGui.ResetOnSpawn = false
+    notifyGui.Parent = player:WaitForChild("PlayerGui")
+    notifyGui.IgnoreGuiInset = true
+    notifyGui.DisplayOrder = 9999
     
-    -- Размеры окна
-    WindowWidth = isMobile and 300 or 380,
-    WindowHeight = isMobile and 480 or 520,
-    CornerRadius = 12,                                  -- Скругление углов
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 160, 0, 36)
+    frame.Position = UDim2.new(0.5, -80, 0, -40)
+    frame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    frame.BorderSizePixel = 0
+    frame.Parent = notifyGui
+    frame.Draggable = true
     
-    -- Кнопки
-    ButtonHeight = isMobile and 40 or 44,
-    ButtonStyle = {
-        CornerRadius = 8,                               -- Скругление кнопок
-        Font = Enum.Font.GothamBold,                    -- Шрифт
-        FontSize = isMobile and 12 or 14,               -- Размер шрифта
-        HoverBrightness = 0.3,                           -- Яркость при наведении
-    },
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = frame
     
-    -- Панель статуса
-    StatusPanel = {
-        Height = isMobile and 160 or 190,
-        BackgroundColor = Color3.fromRGB(30, 30, 40),
-        ItemHeight = isMobile and 22 or 26,
-        Spacing = 3,
-    },
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 50)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 35))
+    })
+    gradient.Rotation = 45
+    gradient.Parent = frame
     
-    -- Анимации
-    AnimationsEnabled = true,
-    AnimationSpeed = 0.2,
-}
-
--- Создаем окно с кастомной темой
-local window = YUUGTRL:CreateWindow(languages.English.title, nil, {
-    ShowClose = true,
-    ShowSettings = true,
-    CloseColor = Color3.fromRGB(255, 70, 70),
-    SettingsColor = Color3.fromRGB(100, 80, 255),
-    Position = isMobile and UDim2.new(1, -310, 0.5, -240) or UDim2.new(1, -400, 0.5, -260),
-    Theme = customTheme
-})
-
-window:AddCredit("by YUUGTRELDYS v3.0", Color3.fromRGB(180, 100, 255))
-
--- Создаем переменные
-local Board = Instance.new("ObjectValue")
-local YourSide = Instance.new("ObjectValue")
-local TheirSide = Instance.new("ObjectValue")
-local onV = Instance.new("BoolValue")
-local enV = Instance.new("BoolValue")
-local theyV = Instance.new("BoolValue")
-local xrayV = Instance.new("BoolValue")
-
-onV.Value = false
-theyV.Value = false
-enV.Value = false
-xrayV.Value = false
-
--- СОЗДАЕМ ПАНЕЛЬ СТАТУСА
-local statusPanel, statusBg, statusScroll, statusLayout, createStatusItem, statusItems = window:CreateStatusPanel()
-
--- Создаем элементы статуса
-local onBoardItem, onBoardLabel, onBoardValue = createStatusItem(languages.English.onBoard)
-local acceptedItem, acceptedLabel, acceptedValue = createStatusItem(languages.English.accepted)
-local scamItem, scamLabel, scamValue = createStatusItem(languages.English.scamMode)
-local autoGroupItem, autoGroupLabel, autoGroupValue = createStatusItem(languages.English.autoGroup)
-local autoVipItem, autoVipLabel, autoVipValue = createStatusItem(languages.English.autoVip)
-local xrayItem, xrayLabel, xrayValue = createStatusItem(languages.English.xray)
-local jumpItem, jumpLabel, jumpValue = createStatusItem(languages.English.jump)
-
--- Устанавливаем начальные значения
-autoGroupValue.Text = "true"
-autoGroupValue.TextColor3 = customTheme.SuccessColor
-autoVipValue.Text = "true"
-autoVipValue.TextColor3 = customTheme.SuccessColor
-
--- СОЗДАЕМ КНОПКИ
-local toggleButton = window:AddButton(languages.English.enableScam, Color3.fromRGB(100, 80, 255), function()
-    enV.Value = not enV.Value
-    updateUI()
-end)
-
-local xrayButton = window:AddButton(languages.English.xrayBtn, Color3.fromRGB(150, 100, 255), function()
-    xrayV.Value = not xrayV.Value
-    if player.Character and player.Character:FindFirstChild("XRay") then
-        player.Character.XRay.Value = xrayV.Value
-    end
-    updateUI()
-end)
-
-local jumpButton = window:AddButton(languages.English.jumpBtn, Color3.fromRGB(80, 200, 150), function()
-    local char = player.Character
-    if char and char:FindFirstChildOfClass("Humanoid") then
-        char.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-    end
-    jumpValue.Text = "true"
-    jumpValue.TextColor3 = customTheme.SuccessColor
-    task.wait(0.5)
-    jumpValue.Text = "false"
-    jumpValue.TextColor3 = customTheme.ErrorColor
-end)
-
-local resetButton = window:AddButton(languages.English.resetBtn, Color3.fromRGB(220, 70, 70), function()
-    local char = player.Character
-    if char and char:FindFirstChild("Humanoid") then
-        char.Humanoid.Health = 0
-    end
-end)
-
--- СОЗДАЕМ ОКНО НАСТРОЕК
-local settingsFrame, settingsHeader, settingsTitle, settingsClose = window:CreateSettingsWindow()
-
--- Добавляем элементы в окно настроек
-local languageLabel = Instance.new("TextLabel")
-languageLabel.Size = UDim2.new(1, -16, 0, 20)
-languageLabel.Position = UDim2.new(0, 8, 0, 40)
-languageLabel.BackgroundTransparency = 1
-languageLabel.Text = languages.English.language .. ":"
-languageLabel.TextColor3 = customTheme.TextSecondaryColor
-languageLabel.Font = customTheme.ButtonStyle.Font
-languageLabel.TextSize = customTheme.ButtonStyle.FontSize - 1
-languageLabel.TextXAlignment = Enum.TextXAlignment.Left
-languageLabel.Parent = settingsFrame
-
-local englishBtn = Instance.new("TextButton")
-englishBtn.Size = UDim2.new(0.4, 0, 0, 28)
-englishBtn.Position = UDim2.new(0.3, 0, 0, 65)
-englishBtn.BackgroundColor3 = customTheme.AccentColor
-englishBtn.Text = "English"
-englishBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-englishBtn.Font = customTheme.ButtonStyle.Font
-englishBtn.TextSize = customTheme.ButtonStyle.FontSize - 1
-englishBtn.Parent = settingsFrame
-
-local englishCorner = Instance.new("UICorner")
-englishCorner.CornerRadius = UDim.new(0, customTheme.ButtonStyle.CornerRadius)
-englishCorner.Parent = englishBtn
-
-local russianBtn = Instance.new("TextButton")
-russianBtn.Size = UDim2.new(0.4, 0, 0, 28)
-russianBtn.Position = UDim2.new(0.3, 0, 0, 100)
-russianBtn.BackgroundColor3 = customTheme.SecondaryColor
-russianBtn.Text = "Русский"
-russianBtn.TextColor3 = customTheme.TextSecondaryColor
-russianBtn.Font = customTheme.ButtonStyle.Font
-russianBtn.TextSize = customTheme.ButtonStyle.FontSize - 1
-russianBtn.Parent = settingsFrame
-
-local russianCorner = Instance.new("UICorner")
-russianCorner.CornerRadius = UDim.new(0, customTheme.ButtonStyle.CornerRadius)
-russianCorner.Parent = russianBtn
-
--- Слайдер прозрачности
-local transContainer, transLabel, transBg, transFill, transDrag = window:CreateSlider(settingsFrame, languages.English.transparency, 0, 100, 0, function(value)
-    currentTransparency = value
-    local val = value / 100
-    window.MainFrame.BackgroundTransparency = val
-    statusBg.BackgroundTransparency = val
-end)
-
-transContainer.Position = UDim2.new(0, 8, 0, 140)
-
--- Функции обновления
-local function updateLanguage()
-    local lang = languages[currentLanguage]
+    local text = Instance.new("TextLabel")
+    text.Size = UDim2.new(1, -10, 1, 0)
+    text.Position = UDim2.new(0, 5, 0, 0)
+    text.BackgroundTransparency = 1
+    text.Text = "YUUGTRL"
+    text.TextColor3 = Color3.fromRGB(170, 85, 255)
+    text.Font = Enum.Font.GothamBold
+    text.TextSize = 16
+    text.Parent = frame
     
-    -- Обновляем текст
-    onBoardLabel.Text = lang.onBoard .. ":"
-    acceptedLabel.Text = lang.accepted .. ":"
-    scamLabel.Text = lang.scamMode .. ":"
-    autoGroupLabel.Text = lang.autoGroup .. ":"
-    autoVipLabel.Text = lang.autoVip .. ":"
-    xrayLabel.Text = lang.xray .. ":"
-    jumpLabel.Text = lang.jump .. ":"
+    local tweenIn = TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
+        Position = UDim2.new(0.5, -80, 0, 20)
+    })
+    tweenIn:Play()
     
-    xrayButton.Text = lang.xrayBtn
-    jumpButton.Text = lang.jumpBtn
-    resetButton.Text = lang.resetBtn
-    toggleButton.Text = enV.Value and lang.disableScam or lang.enableScam
+    task.wait(1.2)
     
-    settingsTitle.Text = lang.settings
-    languageLabel.Text = lang.language .. ":"
-    transLabel.Text = lang.transparency .. ": " .. currentTransparency
+    local tweenOut = TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
+        Position = UDim2.new(0.5, -80, 0, -40)
+    })
+    tweenOut:Play()
+    tweenOut.Completed:Connect(function()
+        notifyGui:Destroy()
+    end)
 end
 
-local function setLanguage(lang)
-    currentLanguage = lang
-    updateLanguage()
-    
-    -- Обновляем цвета кнопок
-    englishBtn.BackgroundColor3 = lang == "English" and customTheme.AccentColor or customTheme.SecondaryColor
-    russianBtn.BackgroundColor3 = lang == "Russian" and customTheme.AccentColor or customTheme.SecondaryColor
-    englishBtn.TextColor3 = lang == "English" and Color3.fromRGB(255,255,255) or customTheme.TextSecondaryColor
-    russianBtn.TextColor3 = lang == "Russian" and Color3.fromRGB(255,255,255) or customTheme.TextSecondaryColor
+spawn(showNotify)
+
+-- Вспомогательные функции
+local function createCorner(parent, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius or 8)
+    corner.Parent = parent
+    return corner
 end
 
-local function toggleScriptVisibility()
-    scriptVisible = not scriptVisible
-    window.MainFrame.Visible = scriptVisible
+local function createGradient(parent, fromColor, toColor, rotation)
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, fromColor), ColorSequenceKeypoint.new(1, toColor)})
+    gradient.Rotation = rotation or 90
+    gradient.Parent = parent
+    return gradient
 end
 
-local function updateUI()
-    -- Обновляем значения статусов
-    onBoardValue.Text = tostring(onV.Value)
-    onBoardValue.TextColor3 = onV.Value and customTheme.SuccessColor or customTheme.ErrorColor
-    
-    acceptedValue.Text = tostring(theyV.Value)
-    acceptedValue.TextColor3 = theyV.Value and customTheme.SuccessColor or customTheme.ErrorColor
-    
-    scamValue.Text = tostring(enV.Value)
-    scamValue.TextColor3 = enV.Value and customTheme.SuccessColor or customTheme.ErrorColor
-    
-    xrayValue.Text = tostring(xrayV.Value)
-    xrayValue.TextColor3 = xrayV.Value and customTheme.SuccessColor or customTheme.ErrorColor
-    
-    -- Обновляем текст кнопки
-    local lang = languages[currentLanguage]
-    toggleButton.Text = enV.Value and lang.disableScam or lang.enableScam
-end
+local function makeDraggable(frame, handle)
+    local dragging = false
+    local dragStart, startPos
 
-local function monitorBoards()
-    while true do
-        task.wait(0.5)
-        local found = false
-        if workspace:FindFirstChild("Boards") then
-            for _, v in pairs(workspace.Boards:GetChildren()) do
-                if v:FindFirstChild("Player1") and (v.Player1.Value == player or v.Player2.Value == player) then
-                    onV.Value = true
-                    found = true
-                    break
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
                 end
-            end
+            end)
         end
-        if not found then onV.Value = false end
-        updateUI()
-    end
+    end)
+
+    handle.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
 end
 
--- Подключаем события
-UserInputService.InputBegan:Connect(function(input, gp)
-    if gp then return end
-    if input.KeyCode == Enum.KeyCode.G then
-        enV.Value = not enV.Value
-        updateUI()
-    end
-    if input.KeyCode == Enum.KeyCode.LeftControl then
-        toggleScriptVisibility()
-    end
-end)
-
-window.CloseButton.MouseButton1Click:Connect(function()
-    window:Destroy()
-    script:Destroy()
-end)
-
-window.SettingsButton.MouseButton1Click:Connect(function()
-    settingsFrame.Visible = true
-end)
-
-settingsClose.MouseButton1Click:Connect(function()
-    settingsFrame.Visible = false
-end)
-
-englishBtn.MouseButton1Click:Connect(function()
-    setLanguage("English")
-end)
-
-russianBtn.MouseButton1Click:Connect(function()
-    setLanguage("Russian")
-end)
-
--- Инициализация
-setLanguage("English")
-updateUI()
-coroutine.wrap(monitorBoards)()
-
--- ПРИМЕР КАК МЕНЯТЬ ТЕМУ ДИНАМИЧЕСКИ (можно раскомментировать)
---[[
-task.wait(5)
-window:UpdateTheme({
-    BackgroundColor = Color3.fromRGB(40, 20, 40),
-    AccentColor = Color3.fromRGB(255, 100, 200),
-    ButtonStyle = {
-        CornerRadius = 4,
-        FontSize = 16
+-- Основная функция создания окна
+function YUUGTRL:CreateWindow(title, size, options)
+    options = options or {}
+    size = size or (isMobile and UDim2.new(0, 280, 0, 320) or UDim2.new(0, 350, 0, 400))
+    
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "YUUGTRL_" .. title
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = player:WaitForChild("PlayerGui")
+    screenGui.IgnoreGuiInset = true
+    screenGui.DisplayOrder = 999
+    
+    -- Основное окно
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = size
+    mainFrame.Position = UDim2.new(0.5, -size.X.Offset/2, 0.5, -size.Y.Offset/2)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    createCorner(mainFrame, 8)
+    createGradient(mainFrame, Color3.fromRGB(40, 40, 50), Color3.fromRGB(25, 25, 35), 45)
+    
+    -- Шапка
+    local header = Instance.new("Frame")
+    header.Size = UDim2.new(1, 0, 0, isMobile and 35 or 40)
+    header.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    header.BorderSizePixel = 0
+    header.Parent = mainFrame
+    createCorner(header, 8)
+    createGradient(header, Color3.fromRGB(60, 60, 80), Color3.fromRGB(40, 40, 55))
+    
+    -- Заголовок
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -80, 1, 0)
+    titleLabel.Position = UDim2.new(0, 10, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = isMobile and 14 or 16
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = header
+    
+    local windowObj = {
+        ScreenGui = screenGui,
+        MainFrame = mainFrame,
+        Header = header,
+        Container = nil,
+        Buttons = {},
+        CloseButton = nil,
+        SettingsButton = nil
     }
-})
---]]
+    
+    -- Кнопки в шапке
+    local buttonX = isMobile and -35 or -40
+    
+    if options.ShowSettings then
+        local settingsBtn = Instance.new("TextButton")
+        settingsBtn.Size = UDim2.new(0, isMobile and 28 or 32, 0, isMobile and 28 or 32)
+        settingsBtn.Position = UDim2.new(1, buttonX, 0.5, - (isMobile and 14 or 16))
+        settingsBtn.BackgroundColor3 = options.SettingsColor or Color3.fromRGB(80, 100, 220)
+        settingsBtn.Text = "⚙"
+        settingsBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        settingsBtn.Font = Enum.Font.GothamBold
+        settingsBtn.TextSize = isMobile and 16 or 18
+        settingsBtn.Parent = header
+        createCorner(settingsBtn, 6)
+        createGradient(settingsBtn, 
+            Color3.fromRGB(100, 120, 240), 
+            Color3.fromRGB(70, 90, 200))
+        
+        windowObj.SettingsButton = settingsBtn
+        buttonX = buttonX - (isMobile and 35 or 40)
+    end
+    
+    if options.ShowClose ~= false then
+        local closeBtn = Instance.new("TextButton")
+        closeBtn.Size = UDim2.new(0, isMobile and 28 or 32, 0, isMobile and 28 or 32)
+        closeBtn.Position = UDim2.new(1, buttonX, 0.5, - (isMobile and 14 or 16))
+        closeBtn.BackgroundColor3 = options.CloseColor or Color3.fromRGB(200, 70, 70)
+        closeBtn.Text = "×"
+        closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        closeBtn.Font = Enum.Font.GothamBold
+        closeBtn.TextSize = isMobile and 18 or 20
+        closeBtn.Parent = header
+        createCorner(closeBtn, 6)
+        createGradient(closeBtn, 
+            Color3.fromRGB(230, 90, 90), 
+            Color3.fromRGB(180, 60, 60))
+        
+        windowObj.CloseButton = closeBtn
+    end
+    
+    makeDraggable(mainFrame, header)
+    
+    -- Контейнер для элементов
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1, -20, 1, -(header.Size.Y.Offset + 20))
+    container.Position = UDim2.new(0, 10, 0, header.Size.Y.Offset + 10)
+    container.BackgroundTransparency = 1
+    container.Parent = mainFrame
+    
+    local scrollingFrame = Instance.new("ScrollingFrame")
+    scrollingFrame.Size = UDim2.new(1, 0, 1, 0)
+    scrollingFrame.BackgroundTransparency = 1
+    scrollingFrame.BorderSizePixel = 0
+    scrollingFrame.ScrollBarThickness = 4
+    scrollingFrame.Parent = container
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.Padding = UDim.new(0, isMobile and 4 or 6)
+    listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    listLayout.Parent = scrollingFrame
+    
+    windowObj.Container = scrollingFrame
+    windowObj.Layout = listLayout
+    
+    -- Метод добавления кнопки
+    function windowObj:AddButton(text, color, callback)
+        color = color or Color3.fromRGB(80, 100, 220)
+        
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, -10, 0, isMobile and 35 or 40)
+        button.BackgroundColor3 = color
+        button.Text = text
+        button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        button.Font = Enum.Font.GothamBold
+        button.TextSize = isMobile and 12 or 14
+        button.Parent = self.Container
+        button.AutoButtonColor = false
+        
+        createCorner(button, 8)
+        createGradient(button, 
+            Color3.new(math.min(color.R*1.2,1), math.min(color.G*1.2,1), math.min(color.B*1.2,1)),
+            Color3.new(color.R*0.8, color.G*0.8, color.B*0.8))
+        
+        button.MouseButton1Click:Connect(function()
+            if callback then callback() end
+        end)
+        
+        table.insert(self.Buttons, button)
+        self.Container.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+        
+        return button
+    end
+    
+    -- Метод добавления текста
+    function windowObj:AddLabel(text)
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, -10, 0, isMobile and 20 or 25)
+        label.BackgroundTransparency = 1
+        label.Text = text
+        label.TextColor3 = Color3.fromRGB(200, 200, 255)
+        label.Font = Enum.Font.GothamBold
+        label.TextSize = isMobile and 12 or 14
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = self.Container
+        
+        self.Container.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+        
+        return label
+    end
+    
+    -- Метод добавления кредита
+    function windowObj:AddCredit(text, color)
+        local credit = Instance.new("TextLabel")
+        credit.Size = UDim2.new(1, -20, 0, 15)
+        credit.Position = UDim2.new(0, 10, 1, -20)
+        credit.BackgroundTransparency = 1
+        credit.Text = text
+        credit.TextColor3 = color or Color3.fromRGB(170, 85, 255)
+        credit.Font = Enum.Font.GothamBold
+        credit.TextSize = 11
+        credit.TextXAlignment = Enum.TextXAlignment.Right
+        credit.Parent = self.MainFrame
+        return credit
+    end
+    
+    -- Метод уничтожения
+    function windowObj:Destroy()
+        screenGui:Destroy()
+    end
+    
+    return windowObj
+end
+
+-- Уведомления
+function YUUGTRL:CreateNotification(title, message, duration)
+    duration = duration or 3
+    
+    local notifGui = Instance.new("ScreenGui")
+    notifGui.Name = "YUUGTRL_Notification"
+    notifGui.ResetOnSpawn = false
+    notifGui.Parent = player:WaitForChild("PlayerGui")
+    notifGui.IgnoreGuiInset = true
+    notifGui.DisplayOrder = 9998
+    
+    local frame = Instance.new("Frame")
+    frame.Size = isMobile and UDim2.new(0, 220, 0, 60) or UDim2.new(0, 260, 0, 70)
+    frame.Position = UDim2.new(0.5, -130, 0, -100)
+    frame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    frame.Parent = notifGui
+    frame.Draggable = true
+    createCorner(frame, 8)
+    createGradient(frame, Color3.fromRGB(40, 40, 50), Color3.fromRGB(25, 25, 35), 45)
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -20, 0, isMobile and 20 or 25)
+    titleLabel.Position = UDim2.new(0, 10, 0, 5)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title
+    titleLabel.TextColor3 = Color3.fromRGB(220, 220, 255)
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = isMobile and 12 or 14
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = frame
+    
+    local messageLabel = Instance.new("TextLabel")
+    messageLabel.Size = UDim2.new(1, -20, 0, isMobile and 20 or 25)
+    messageLabel.Position = UDim2.new(0, 10, 0, isMobile and 25 or 30)
+    messageLabel.BackgroundTransparency = 1
+    messageLabel.Text = message
+    messageLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
+    messageLabel.Font = Enum.Font.GothamBold
+    messageLabel.TextSize = isMobile and 11 or 13
+    messageLabel.Parent = frame
+    
+    local tweenIn = TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {
+        Position = UDim2.new(0.5, -130, 0, 20)
+    })
+    tweenIn:Play()
+    
+    task.wait(duration)
+    
+    local tweenOut = TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {
+        Position = UDim2.new(0.5, -130, 0, -100)
+    })
+    tweenOut:Play()
+    tweenOut.Completed:Connect(function()
+        notifGui:Destroy()
+    end)
+end
+
+-- Проверка на мобильное устройство
+function YUUGTRL:IsMobile()
+    return isMobile
+end
+
+return YUUGTRL
