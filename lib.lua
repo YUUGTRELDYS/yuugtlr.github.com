@@ -1,8 +1,3 @@
---[[
-    YUUGTR Library v1.0
-    Красивые кнопки и окна в стиле Trade Script
-]]
-
 local YUUGTR = {}
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -10,69 +5,6 @@ local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- Показываем приветственное сообщение
-local function showWelcomeMessage()
-    local msg = Instance.new("ScreenGui")
-    msg.Name = "YUUGTR_Message"
-    msg.DisplayOrder = 9999
-    msg.Parent = player:WaitForChild("PlayerGui")
-    
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 200, 0, 40)
-    frame.Position = UDim2.new(0.5, -100, 0, 20)
-    frame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-    frame.BackgroundTransparency = 0.2
-    frame.BorderSizePixel = 0
-    frame.Parent = msg
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 10)
-    corner.Parent = frame
-    
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 100, 220)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(170, 85, 255))
-    })
-    gradient.Rotation = 45
-    gradient.Parent = frame
-    
-    local text = Instance.new("TextLabel")
-    text.Size = UDim2.new(1, 0, 1, 0)
-    text.BackgroundTransparency = 1
-    text.Text = "YUUGTR Library"
-    text.TextColor3 = Color3.fromRGB(255, 255, 255)
-    text.Font = Enum.Font.GothamBold
-    text.TextSize = 18
-    text.TextStrokeTransparency = 0.5
-    text.Parent = frame
-    
-    local shadow = Instance.new("ImageLabel")
-    shadow.Size = UDim2.new(1, 10, 1, 10)
-    shadow.Position = UDim2.new(0, -5, 0, -5)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxassetid://1316045217"
-    shadow.ImageColor3 = Color3.fromRGB(170, 85, 255)
-    shadow.ImageTransparency = 0.7
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-    shadow.Parent = frame
-    
-    task.wait(2)
-    
-    local tween = TweenService:Create(frame, TweenInfo.new(0.5), {BackgroundTransparency = 1})
-    tween:Play()
-    tween.Completed:Connect(function()
-        msg:Destroy()
-    end)
-    
-    local textTween = TweenService:Create(text, TweenInfo.new(0.5), {TextTransparency = 1})
-    textTween:Play()
-end
-
-showWelcomeMessage()
-
--- Основные цвета из панели
 local colors = {
     background = Color3.fromRGB(25, 25, 35),
     header = Color3.fromRGB(35, 35, 45),
@@ -82,8 +14,7 @@ local colors = {
         warning = Color3.fromRGB(220, 70, 70),
         xray = Color3.fromRGB(140, 80, 220),
         jump = Color3.fromRGB(80, 180, 120),
-        reset = Color3.fromRGB(200, 70, 70),
-        settings = Color3.fromRGB(80, 100, 220)
+        reset = Color3.fromRGB(200, 70, 70)
     },
     text = {
         primary = Color3.fromRGB(255, 255, 255),
@@ -96,7 +27,6 @@ local colors = {
     }
 }
 
--- Создание градиента для кнопок
 local function addGradient(instance, color1, color2)
     local gradient = Instance.new("UIGradient")
     gradient.Color = ColorSequence.new({
@@ -105,28 +35,21 @@ local function addGradient(instance, color1, color2)
     })
     gradient.Rotation = 90
     gradient.Parent = instance
-    return gradient
 end
 
--- Функция анимации кнопки
 local function animateButton(button, enabled)
-    local targetColor = enabled and colors.button.success or colors.button.primary
-    if button._originalColor then
-        targetColor = enabled and colors.button.success or button._originalColor
-    end
-    
-    local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    local tween = TweenService:Create(button, tweenInfo, {BackgroundColor3 = targetColor})
+    if not button then return end
+    local targetColor = enabled and colors.button.success or (button._originalColor or colors.button.primary)
+    local tween = TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = targetColor})
     tween:Play()
 end
 
--- Создание нового окна
 function YUUGTR:CreateWindow(title, size, position)
     size = size or UDim2.new(0, 350, 0, 400)
     position = position or UDim2.new(0.5, -175, 0.5, -200)
     
     local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "YUUGTR_" .. title:gsub("%s+", "")
+    ScreenGui.Name = "YUUGTR_" .. tostring(title):gsub("%s+", "")
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     ScreenGui.DisplayOrder = 999
     ScreenGui.ResetOnSpawn = false
@@ -156,10 +79,8 @@ function YUUGTR:CreateWindow(title, size, position)
     WindowCorner.CornerRadius = UDim.new(0, 16)
     WindowCorner.Parent = MainFrame
     
-    local WindowGradient = addGradient(MainFrame, Color3.fromRGB(40, 40, 50), colors.background)
-    WindowGradient.Rotation = 45
+    addGradient(MainFrame, Color3.fromRGB(40, 40, 50), colors.background)
     
-    -- Заголовок окна
     local Header = Instance.new("Frame")
     Header.Name = "Header"
     Header.Size = UDim2.new(1, 0, 0, 45)
@@ -167,8 +88,7 @@ function YUUGTR:CreateWindow(title, size, position)
     Header.BorderSizePixel = 0
     Header.Parent = MainFrame
     
-    local HeaderGradient = addGradient(Header, Color3.fromRGB(60, 60, 80), Color3.fromRGB(40, 40, 55))
-    HeaderGradient.Rotation = 45
+    addGradient(Header, Color3.fromRGB(60, 60, 80), Color3.fromRGB(40, 40, 55))
     
     local HeaderCorner = Instance.new("UICorner")
     HeaderCorner.CornerRadius = UDim.new(0, 16)
@@ -179,7 +99,7 @@ function YUUGTR:CreateWindow(title, size, position)
     TitleLabel.Size = UDim2.new(1, -60, 1, 0)
     TitleLabel.Position = UDim2.new(0, 12, 0, 0)
     TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Text = title
+    TitleLabel.Text = tostring(title)
     TitleLabel.TextColor3 = colors.text.primary
     TitleLabel.Font = Enum.Font.GothamBold
     TitleLabel.TextSize = 18
@@ -214,7 +134,6 @@ function YUUGTR:CreateWindow(title, size, position)
         animateButton(CloseButton, false)
     end)
     
-    -- Создаем контейнер для контента
     local Container = Instance.new("Frame")
     Container.Name = "Container"
     Container.Size = UDim2.new(1, -20, 1, -65)
@@ -227,7 +146,6 @@ function YUUGTR:CreateWindow(title, size, position)
     ContainerList.HorizontalAlignment = Enum.HorizontalAlignment.Center
     ContainerList.Parent = Container
     
-    -- Функция для перетаскивания
     local function setupDragging()
         local dragging = false
         local dragInput, dragStart, startPos
@@ -283,26 +201,25 @@ function YUUGTR:CreateWindow(title, size, position)
     }
 end
 
--- Создание кнопки
 function YUUGTR:CreateButton(parent, text, callback, buttonColor)
+    if not parent then return nil end
     buttonColor = buttonColor or colors.button.primary
     
     local Button = Instance.new("TextButton")
-    Button.Name = text .. "Button"
+    Button.Name = tostring(text) .. "Button"
     Button.Size = UDim2.new(1, 0, 0, 35)
     Button.BackgroundColor3 = buttonColor
-    Button.Text = text
+    Button.Text = tostring(text)
     Button.TextColor3 = colors.text.primary
     Button.Font = Enum.Font.GothamBold
     Button.TextSize = 13
     Button.Parent = parent
     Button._originalColor = buttonColor
     
-    local ButtonGradient = addGradient(Button, 
-        Color3.fromRGB(math.min(buttonColor.R * 255 + 20, 255)/255, 
-                      math.min(buttonColor.G * 255 + 20, 255)/255, 
-                      math.min(buttonColor.B * 255 + 20, 255)/255), 
-        buttonColor)
+    local r = math.min(buttonColor.R * 255 + 20, 255) / 255
+    local g = math.min(buttonColor.G * 255 + 20, 255) / 255
+    local b = math.min(buttonColor.B * 255 + 20, 255) / 255
+    addGradient(Button, Color3.new(r, g, b), buttonColor)
     
     local ButtonCorner = Instance.new("UICorner")
     ButtonCorner.CornerRadius = UDim.new(0, 10)
@@ -310,7 +227,10 @@ function YUUGTR:CreateButton(parent, text, callback, buttonColor)
     
     Button.MouseButton1Click:Connect(function()
         if callback then
-            callback()
+            local success, err = pcall(callback)
+            if not success then
+                warn("Button callback error:", err)
+            end
         end
         animateButton(Button, true)
         task.wait(0.2)
@@ -328,8 +248,9 @@ function YUUGTR:CreateButton(parent, text, callback, buttonColor)
     return Button
 end
 
--- Создание панели статусов (как в оригинале)
 function YUUGTR:CreateStatusPanel(parent, items)
+    if not parent then return nil, function() end end
+    
     local Panel = Instance.new("Frame")
     Panel.Name = "StatusPanel"
     Panel.Size = UDim2.new(1, 0, 0, 180)
@@ -362,9 +283,9 @@ function YUUGTR:CreateStatusPanel(parent, items)
     
     local statusItems = {}
     
-    for i, itemName in ipairs(items) do
+    for i, itemName in ipairs(items or {}) do
         local ItemFrame = Instance.new("Frame")
-        ItemFrame.Name = itemName
+        ItemFrame.Name = tostring(itemName)
         ItemFrame.Size = UDim2.new(1, 0, 0, 28)
         ItemFrame.BackgroundTransparency = 1
         ItemFrame.Parent = ScrollingFrame
@@ -373,7 +294,7 @@ function YUUGTR:CreateStatusPanel(parent, items)
         Label.Name = "Label"
         Label.Size = UDim2.new(0.5, 0, 1, 0)
         Label.BackgroundTransparency = 1
-        Label.Text = itemName .. ":"
+        Label.Text = tostring(itemName) .. ":"
         Label.TextColor3 = colors.text.secondary
         Label.Font = Enum.Font.Gotham
         Label.TextSize = 14
@@ -392,21 +313,18 @@ function YUUGTR:CreateStatusPanel(parent, items)
         Value.TextXAlignment = Enum.TextXAlignment.Left
         Value.Parent = ItemFrame
         
-        statusItems[itemName] = {
+        statusItems[tostring(itemName)] = {
             frame = ItemFrame,
             label = Label,
             value = Value
         }
     end
     
-    -- Функция обновления статуса
     local function updateStatus(name, state)
-        if statusItems[name] then
-            local valueLabel = statusItems[name].value
+        if statusItems[tostring(name)] then
+            local valueLabel = statusItems[tostring(name)].value
             valueLabel.Text = tostring(state)
-            
-            local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-            local tween = TweenService:Create(valueLabel, tweenInfo, 
+            local tween = TweenService:Create(valueLabel, TweenInfo.new(0.3), 
                 {TextColor3 = state and colors.status.true or colors.status.false})
             tween:Play()
         end
@@ -415,14 +333,14 @@ function YUUGTR:CreateStatusPanel(parent, items)
     return Panel, updateStatus
 end
 
--- Создание слайдера (как в оригинале)
 function YUUGTR:CreateSlider(parent, text, min, max, default, callback)
+    if not parent then return nil end
     min = min or 0
     max = max or 100
     default = default or 0
     
     local Container = Instance.new("Frame")
-    Container.Name = text .. "Slider"
+    Container.Name = tostring(text) .. "Slider"
     Container.Size = UDim2.new(1, 0, 0, 45)
     Container.BackgroundTransparency = 1
     Container.Parent = parent
@@ -431,7 +349,7 @@ function YUUGTR:CreateSlider(parent, text, min, max, default, callback)
     Label.Size = UDim2.new(1, -10, 0, 20)
     Label.Position = UDim2.new(0, 5, 0, 0)
     Label.BackgroundTransparency = 1
-    Label.Text = text .. ": " .. default
+    Label.Text = tostring(text) .. ": " .. tostring(default)
     Label.TextColor3 = colors.text.secondary
     Label.Font = Enum.Font.Gotham
     Label.TextSize = 14
@@ -452,7 +370,8 @@ function YUUGTR:CreateSlider(parent, text, min, max, default, callback)
     
     local Fill = Instance.new("Frame")
     Fill.Name = "Fill"
-    Fill.Size = UDim2.new(default/(max-min), 0, 1, 0)
+    local fillSize = (default - min) / (max - min)
+    Fill.Size = UDim2.new(fillSize, 0, 1, 0)
     Fill.BackgroundColor3 = colors.button.primary
     Fill.BorderSizePixel = 0
     Fill.Parent = SliderFrame
@@ -464,7 +383,7 @@ function YUUGTR:CreateSlider(parent, text, min, max, default, callback)
     local Knob = Instance.new("TextButton")
     Knob.Name = "Knob"
     Knob.Size = UDim2.new(0, 16, 0, 16)
-    Knob.Position = UDim2.new(default/(max-min), -8, 0, 0)
+    Knob.Position = UDim2.new(fillSize, -8, 0, 0)
     Knob.BackgroundColor3 = colors.text.primary
     Knob.Text = ""
     Knob.BorderSizePixel = 0
@@ -497,17 +416,21 @@ function YUUGTR:CreateSlider(parent, text, min, max, default, callback)
             local mousePos = input.Position.X
             local sliderPos = SliderFrame.AbsolutePosition.X
             local sliderSize = SliderFrame.AbsoluteSize.X
-            local relativePos = math.clamp((mousePos - sliderPos) / sliderSize, 0, 1)
-            
-            local value = min + (max - min) * relativePos
-            value = math.floor(value * 10) / 10 -- Округляем до 1 знака
-            
-            Fill.Size = UDim2.new(relativePos, 0, 1, 0)
-            Knob.Position = UDim2.new(relativePos, -8, 0, 0)
-            Label.Text = text .. ": " .. value
-            
-            if callback then
-                callback(value)
+            if sliderSize > 0 then
+                local relativePos = math.clamp((mousePos - sliderPos) / sliderSize, 0, 1)
+                local value = min + (max - min) * relativePos
+                value = math.floor(value * 10) / 10
+                
+                Fill.Size = UDim2.new(relativePos, 0, 1, 0)
+                Knob.Position = UDim2.new(relativePos, -8, 0, 0)
+                Label.Text = tostring(text) .. ": " .. tostring(value)
+                
+                if callback then
+                    local success, err = pcall(function() callback(value) end)
+                    if not success then
+                        warn("Slider callback error:", err)
+                    end
+                end
             end
         end
     end)
@@ -515,27 +438,12 @@ function YUUGTR:CreateSlider(parent, text, min, max, default, callback)
     return Container
 end
 
--- Создание текстового поля
-function YUUGTR:CreateTextLabel(parent, text, textColor)
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -10, 0, 20)
-    Label.BackgroundTransparency = 1
-    Label.Text = text
-    Label.TextColor3 = textColor or colors.text.primary
-    Label.Font = Enum.Font.Gotham
-    Label.TextSize = 14
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.Parent = parent
-    
-    return Label
-end
-
--- Создание переключателя (Toggle)
 function YUUGTR:CreateToggle(parent, text, default, callback)
+    if not parent then return nil, function() return false end end
     default = default or false
     
     local Container = Instance.new("Frame")
-    Container.Name = text .. "Toggle"
+    Container.Name = tostring(text) .. "Toggle"
     Container.Size = UDim2.new(1, 0, 0, 30)
     Container.BackgroundTransparency = 1
     Container.Parent = parent
@@ -543,7 +451,7 @@ function YUUGTR:CreateToggle(parent, text, default, callback)
     local Label = Instance.new("TextLabel")
     Label.Size = UDim2.new(0.7, -5, 1, 0)
     Label.BackgroundTransparency = 1
-    Label.Text = text
+    Label.Text = tostring(text)
     Label.TextColor3 = colors.text.secondary
     Label.Font = Enum.Font.Gotham
     Label.TextSize = 14
@@ -572,14 +480,16 @@ function YUUGTR:CreateToggle(parent, text, default, callback)
         ToggleButton.Text = state and "ON" or "OFF"
         
         local targetColor = state and colors.status.true or colors.status.false
-        local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        local tween = TweenService:Create(ToggleButton, tweenInfo, {BackgroundColor3 = targetColor})
+        local tween = TweenService:Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = targetColor})
         tween:Play()
         
         if callback then
-        callback(state)
+            local success, err = pcall(function() callback(state) end)
+            if not success then
+                warn("Toggle callback error:", err)
+            end
+        end
     end
-end
     
     ToggleButton.MouseButton1Click:Connect(updateToggle)
     
@@ -593,5 +503,74 @@ end
     
     return ToggleButton, function() return state end
 end
+
+local function showWelcomeMessage()
+    local success, err = pcall(function()
+        local msg = Instance.new("ScreenGui")
+        msg.Name = "YUUGTR_Message"
+        msg.DisplayOrder = 9999
+        msg.Parent = player:WaitForChild("PlayerGui")
+        
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 200, 0, 40)
+        frame.Position = UDim2.new(0.5, -100, 0, 20)
+        frame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+        frame.BackgroundTransparency = 0.2
+        frame.BorderSizePixel = 0
+        frame.Parent = msg
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 10)
+        corner.Parent = frame
+        
+        local gradient = Instance.new("UIGradient")
+        gradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 100, 220)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(170, 85, 255))
+        })
+        gradient.Rotation = 45
+        gradient.Parent = frame
+        
+        local text = Instance.new("TextLabel")
+        text.Size = UDim2.new(1, 0, 1, 0)
+        text.BackgroundTransparency = 1
+        text.Text = "YUUGTR Library"
+        text.TextColor3 = Color3.fromRGB(255, 255, 255)
+        text.Font = Enum.Font.GothamBold
+        text.TextSize = 18
+        text.TextStrokeTransparency = 0.5
+        text.Parent = frame
+        
+        local shadow = Instance.new("ImageLabel")
+        shadow.Size = UDim2.new(1, 10, 1, 10)
+        shadow.Position = UDim2.new(0, -5, 0, -5)
+        shadow.BackgroundTransparency = 1
+        shadow.Image = "rbxassetid://1316045217"
+        shadow.ImageColor3 = Color3.fromRGB(170, 85, 255)
+        shadow.ImageTransparency = 0.7
+        shadow.ScaleType = Enum.ScaleType.Slice
+        shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+        shadow.Parent = frame
+        
+        task.wait(2)
+        
+        local tween = TweenService:Create(frame, TweenInfo.new(0.5), {BackgroundTransparency = 1})
+        tween:Play()
+        tween.Completed:Connect(function()
+            pcall(function() msg:Destroy() end)
+        end)
+        
+        local textTween = TweenService:Create(text, TweenInfo.new(0.5), {TextTransparency = 1})
+        textTween:Play()
+    end)
+    
+    if not success then
+        warn("Welcome message error:", err)
+    end
+end
+
+spawn(function()
+    pcall(showWelcomeMessage)
+end)
 
 return YUUGTR
