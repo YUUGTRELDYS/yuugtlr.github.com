@@ -6,22 +6,31 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local isMobile = UserInputService.TouchEnabled
 
+local isLoading = true
+local windows = {}
+
 local function showLoadMessage()
-    local msgGui = Instance.new("ScreenGui")
-    msgGui.Name = "YUUGTRL_LoadMessage"
-    msgGui.ResetOnSpawn = false
-    msgGui.Parent = player:WaitForChild("PlayerGui")
-    msgGui.IgnoreGuiInset = true
-    msgGui.DisplayOrder = 9999
+    local loadGui = Instance.new("ScreenGui")
+    loadGui.Name = "YUUGTRL_Loader"
+    loadGui.ResetOnSpawn = false
+    loadGui.Parent = player:WaitForChild("PlayerGui")
+    loadGui.IgnoreGuiInset = true
+    loadGui.DisplayOrder = 9999
     
-    local msgFrame = Instance.new("Frame")
-    msgFrame.Name = "MessageFrame"
-    msgFrame.Size = UDim2.new(0, 280, 0, 50)
-    msgFrame.Position = UDim2.new(0.5, -140, 0, -70)
-    msgFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-    msgFrame.BorderSizePixel = 0
-    msgFrame.ClipsDescendants = true
-    msgFrame.Parent = msgGui
+    local bg = Instance.new("Frame")
+    bg.Name = "Background"
+    bg.Size = UDim2.new(1, 0, 1, 0)
+    bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    bg.BackgroundTransparency = 0.5
+    bg.Parent = loadGui
+    
+    local loadFrame = Instance.new("Frame")
+    loadFrame.Name = "LoadFrame"
+    loadFrame.Size = UDim2.new(0, 300, 0, 120)
+    loadFrame.Position = UDim2.new(0.5, -150, 0.5, -60)
+    loadFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    loadFrame.BorderSizePixel = 0
+    loadFrame.Parent = loadGui
     
     local shadow = Instance.new("ImageLabel")
     shadow.Name = "Shadow"
@@ -33,11 +42,11 @@ local function showLoadMessage()
     shadow.ImageTransparency = 0.9
     shadow.ScaleType = Enum.ScaleType.Slice
     shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-    shadow.Parent = msgFrame
+    shadow.Parent = loadFrame
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 12)
-    corner.Parent = msgFrame
+    corner.CornerRadius = UDim.new(0, 16)
+    corner.Parent = loadFrame
     
     local gradient = Instance.new("UIGradient")
     gradient.Color = ColorSequence.new({
@@ -45,49 +54,101 @@ local function showLoadMessage()
         ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 35))
     })
     gradient.Rotation = 45
-    gradient.Parent = msgFrame
+    gradient.Parent = loadFrame
     
-    local msgText = Instance.new("TextLabel")
-    msgText.Name = "MessageText"
-    msgText.Size = UDim2.new(1, -20, 1, 0)
-    msgText.Position = UDim2.new(0, 10, 0, 0)
-    msgText.BackgroundTransparency = 1
-    msgText.Text = "📚 YUUGTRL LIBRARY LOADED"
-    msgText.TextColor3 = Color3.fromRGB(170, 85, 255)
-    msgText.Font = Enum.Font.GothamBold
-    msgText.TextSize = isMobile and 12 or 14
-    msgText.TextXAlignment = Enum.TextXAlignment.Left
-    msgText.Parent = msgFrame
+    local logo = Instance.new("TextLabel")
+    logo.Name = "Logo"
+    logo.Size = UDim2.new(1, 0, 0, 40)
+    logo.Position = UDim2.new(0, 0, 0, 15)
+    logo.BackgroundTransparency = 1
+    logo.Text = "📚 YUUGTRL"
+    logo.TextColor3 = Color3.fromRGB(170, 85, 255)
+    logo.Font = Enum.Font.GothamBold
+    logo.TextSize = 24
+    logo.Parent = loadFrame
     
-    local versionText = Instance.new("TextLabel")
-    versionText.Name = "VersionText"
-    versionText.Size = UDim2.new(0, 50, 1, 0)
-    versionText.Position = UDim2.new(1, -60, 0, 0)
-    versionText.BackgroundTransparency = 1
-    versionText.Text = "v3.0"
-    versionText.TextColor3 = Color3.fromRGB(80, 100, 220)
-    versionText.Font = Enum.Font.GothamBold
-    versionText.TextSize = isMobile and 10 or 12
-    versionText.TextXAlignment = Enum.TextXAlignment.Right
-    versionText.Parent = msgFrame
+    local status = Instance.new("TextLabel")
+    status.Name = "Status"
+    status.Size = UDim2.new(1, 0, 0, 20)
+    status.Position = UDim2.new(0, 0, 0, 55)
+    status.BackgroundTransparency = 1
+    status.Text = "Loading..."
+    status.TextColor3 = Color3.fromRGB(200, 200, 255)
+    status.Font = Enum.Font.Gotham
+    status.TextSize = 14
+    status.Parent = loadFrame
     
-    local tweenIn = TweenService:Create(msgFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Position = UDim2.new(0.5, -140, 0, 20)
-    })
-    tweenIn:Play()
+    local progressBg = Instance.new("Frame")
+    progressBg.Name = "ProgressBg"
+    progressBg.Size = UDim2.new(0, 260, 0, 6)
+    progressBg.Position = UDim2.new(0.5, -130, 0, 80)
+    progressBg.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    progressBg.BorderSizePixel = 0
+    progressBg.Parent = loadFrame
     
-    task.wait(2)
+    local progressCorner = Instance.new("UICorner")
+    progressCorner.CornerRadius = UDim.new(0, 3)
+    progressCorner.Parent = progressBg
     
-    local tweenOut = TweenService:Create(msgFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
-        Position = UDim2.new(0.5, -140, 0, -70)
+    local progressFill = Instance.new("Frame")
+    progressFill.Name = "ProgressFill"
+    progressFill.Size = UDim2.new(0, 0, 1, 0)
+    progressFill.BackgroundColor3 = Color3.fromRGB(80, 100, 220)
+    progressFill.BorderSizePixel = 0
+    progressFill.Parent = progressBg
+    
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(0, 3)
+    fillCorner.Parent = progressFill
+    
+    local version = Instance.new("TextLabel")
+    version.Name = "Version"
+    version.Size = UDim2.new(1, 0, 0, 15)
+    version.Position = UDim2.new(0, 0, 1, -20)
+    version.BackgroundTransparency = 1
+    version.Text = "v3.0"
+    version.TextColor3 = Color3.fromRGB(80, 100, 220)
+    version.Font = Enum.Font.Gotham
+    version.TextSize = 10
+    version.Parent = loadFrame
+    
+    local steps = {"Initializing...", "Loading UI...", "Creating elements...", "Almost ready...", "Done!"}
+    local step = 0
+    
+    for i = 1, 100 do
+        step = math.floor(i / 20) + 1
+        if step > 5 then step = 5 end
+        status.Text = steps[step]
+        progressFill.Size = UDim2.new(i / 100, 0, 1, 0)
+        if i == 30 then wait(0.1) end
+        if i == 50 then wait(0.1) end
+        if i == 70 then wait(0.1) end
+        if i == 90 then wait(0.1) end
+        wait(0.02)
+    end
+    
+    wait(0.3)
+    
+    local tweenOut = TweenService:Create(loadFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+        Position = UDim2.new(0.5, -150, 1.5, 0)
     })
     tweenOut:Play()
+    
+    local bgTween = TweenService:Create(bg, TweenInfo.new(0.5), {
+        BackgroundTransparency = 1
+    })
+    bgTween:Play()
+    
     tweenOut.Completed:Connect(function()
-        msgGui:Destroy()
+        loadGui:Destroy()
+        isLoading = false
+        for _, window in ipairs(windows) do
+            if window and window.MainFrame then
+                window.MainFrame.Visible = true
+            end
+        end
     end)
 end
-
-spawn(showLoadMessage)
 
 local function createShadow(parent)
     local shadow = Instance.new("ImageLabel")
@@ -119,10 +180,17 @@ local function createGradient(parent, from, to, rotation)
     return gradient
 end
 
-local function createButtonGradient(button, baseColor)
+local function createButtonGradient(button, baseColor, isPressed)
     local r, g, b = baseColor.R, baseColor.G, baseColor.B
-    local lighter = Color3.new(math.min(r * 1.3, 1), math.min(g * 1.3, 1), math.min(b * 1.3, 1))
-    local darker = Color3.new(r * 0.7, g * 0.7, b * 0.7)
+    
+    local top, bottom
+    if isPressed then
+        top = Color3.new(r * 0.6, g * 0.6, b * 0.6)
+        bottom = Color3.new(r * 0.4, g * 0.4, b * 0.4)
+    else
+        top = Color3.new(math.min(r * 1.3, 1), math.min(g * 1.3, 1), math.min(b * 1.3, 1))
+        bottom = Color3.new(r * 0.7, g * 0.7, b * 0.7)
+    end
     
     for _, child in pairs(button:GetChildren()) do
         if child:IsA("UIGradient") then
@@ -132,16 +200,28 @@ local function createButtonGradient(button, baseColor)
     
     local gradient = Instance.new("UIGradient")
     gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, lighter),
-        ColorSequenceKeypoint.new(1, darker)
+        ColorSequenceKeypoint.new(0, top),
+        ColorSequenceKeypoint.new(1, bottom)
     })
     gradient.Rotation = 90
     gradient.Parent = button
 end
 
-local function createButtonText(button, text, baseColor, size)
+local function createButtonText(button, text, baseColor, size, isPressed)
     local r, g, b = baseColor.R, baseColor.G, baseColor.B
-    local textColor = Color3.new(math.min(r * 1.4, 1), math.min(g * 1.4, 1), math.min(b * 1.4, 1))
+    local textColor
+    
+    if isPressed then
+        textColor = Color3.new(r * 0.8, g * 0.8, b * 0.8)
+    else
+        textColor = Color3.new(math.min(r * 1.4, 1), math.min(g * 1.4, 1), math.min(b * 1.4, 1))
+    end
+    
+    for _, child in pairs(button:GetChildren()) do
+        if child:IsA("TextLabel") then
+            child:Destroy()
+        end
+    end
     
     local label = Instance.new("TextLabel")
     label.BackgroundTransparency = 1
@@ -210,7 +290,10 @@ function YUUGTRL:CreateWindow(title, size)
     mainFrame.Position = UDim2.new(0.5, -size.X.Offset/2, 0.5, -size.Y.Offset/2)
     mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
     mainFrame.BorderSizePixel = 0
+    mainFrame.Visible = false
     mainFrame.Parent = screenGui
+    
+    table.insert(windows, mainFrame)
     
     createShadow(mainFrame)
     createCorner(mainFrame, 16)
@@ -247,8 +330,23 @@ function YUUGTRL:CreateWindow(title, size)
     closeButton.Parent = header
     
     createCorner(closeButton, 8)
-    createButtonGradient(closeButton, Color3.fromRGB(200, 70, 70))
-    createButtonText(closeButton, "×", Color3.fromRGB(200, 70, 70), isMobile and 16 or 20)
+    createButtonGradient(closeButton, Color3.fromRGB(200, 70, 70), false)
+    createButtonText(closeButton, "×", Color3.fromRGB(200, 70, 70), isMobile and 16 or 20, false)
+    
+    closeButton.MouseButton1Down:Connect(function()
+        createButtonGradient(closeButton, Color3.fromRGB(200, 70, 70), true)
+        createButtonText(closeButton, "×", Color3.fromRGB(200, 70, 70), isMobile and 16 or 20, true)
+    end)
+    
+    closeButton.MouseButton1Up:Connect(function()
+        createButtonGradient(closeButton, Color3.fromRGB(200, 70, 70), false)
+        createButtonText(closeButton, "×", Color3.fromRGB(200, 70, 70), isMobile and 16 or 20, false)
+    end)
+    
+    closeButton.MouseLeave:Connect(function()
+        createButtonGradient(closeButton, Color3.fromRGB(200, 70, 70), false)
+        createButtonText(closeButton, "×", Color3.fromRGB(200, 70, 70), isMobile and 16 or 20, false)
+    end)
     
     local settingsButton = Instance.new("TextButton")
     settingsButton.Name = "SettingsButton"
@@ -259,8 +357,23 @@ function YUUGTRL:CreateWindow(title, size)
     settingsButton.Parent = header
     
     createCorner(settingsButton, 8)
-    createButtonGradient(settingsButton, Color3.fromRGB(80, 100, 220))
-    createButtonText(settingsButton, "⚙", Color3.fromRGB(80, 100, 220), isMobile and 16 or 20)
+    createButtonGradient(settingsButton, Color3.fromRGB(80, 100, 220), false)
+    createButtonText(settingsButton, "⚙", Color3.fromRGB(80, 100, 220), isMobile and 16 or 20, false)
+    
+    settingsButton.MouseButton1Down:Connect(function()
+        createButtonGradient(settingsButton, Color3.fromRGB(80, 100, 220), true)
+        createButtonText(settingsButton, "⚙", Color3.fromRGB(80, 100, 220), isMobile and 16 or 20, true)
+    end)
+    
+    settingsButton.MouseButton1Up:Connect(function()
+        createButtonGradient(settingsButton, Color3.fromRGB(80, 100, 220), false)
+        createButtonText(settingsButton, "⚙", Color3.fromRGB(80, 100, 220), isMobile and 16 or 20, false)
+    end)
+    
+    settingsButton.MouseLeave:Connect(function()
+        createButtonGradient(settingsButton, Color3.fromRGB(80, 100, 220), false)
+        createButtonText(settingsButton, "⚙", Color3.fromRGB(80, 100, 220), isMobile and 16 or 20, false)
+    end)
     
     makeDraggable(mainFrame, header)
     
@@ -304,10 +417,14 @@ function YUUGTRL:CreateWindow(title, size)
         Elements = {}
     }
     
-    function windowObj:AddButton(text, color, callback)
+    function windowObj:AddButton(text, color, callback, toggleMode)
         if not callback and type(color) == "function" then
             callback = color
             color = Color3.fromRGB(80, 100, 220)
+            toggleMode = false
+        elseif type(toggleMode) == "function" then
+            callback = toggleMode
+            toggleMode = false
         end
         
         color = color or Color3.fromRGB(80, 100, 220)
@@ -320,13 +437,50 @@ function YUUGTRL:CreateWindow(title, size)
         button.Parent = self.Container
         button.AutoButtonColor = false
         
-        createCorner(button, 10)
-        createButtonGradient(button, color)
-        createButtonText(button, text, color, isMobile and 12 or 14)
+        local isPressed = false
+        local isToggled = false
+        local originalColor = color
         
-        button.MouseButton1Click:Connect(function()
-            if callback then callback() end
-        end)
+        createCorner(button, 10)
+        createButtonGradient(button, color, false)
+        local buttonText = createButtonText(button, text, color, isMobile and 12 or 14, false)
+        
+        if toggleMode then
+            button.MouseButton1Click:Connect(function()
+                isToggled = not isToggled
+                if isToggled then
+                    createButtonGradient(button, color, true)
+                    createButtonText(button, "✓ " .. text, color, isMobile and 12 or 14, true)
+                else
+                    createButtonGradient(button, color, false)
+                    createButtonText(button, text, color, isMobile and 12 or 14, false)
+                end
+                if callback then callback(isToggled) end
+            end)
+        else
+            button.MouseButton1Down:Connect(function()
+                isPressed = true
+                createButtonGradient(button, color, true)
+                createButtonText(button, text, color, isMobile and 12 or 14, true)
+            end)
+            
+            button.MouseButton1Up:Connect(function()
+                if isPressed then
+                    isPressed = false
+                    createButtonGradient(button, color, false)
+                    createButtonText(button, text, color, isMobile and 12 or 14, false)
+                    if callback then callback() end
+                end
+            end)
+            
+            button.MouseLeave:Connect(function()
+                if isPressed then
+                    isPressed = false
+                    createButtonGradient(button, color, false)
+                    createButtonText(button, text, color, isMobile and 12 or 14, false)
+                end
+            end)
+        end
         
         table.insert(self.Elements, button)
         
@@ -365,19 +519,29 @@ function YUUGTRL:CreateWindow(title, size)
         toggleButton.AutoButtonColor = false
         
         createCorner(toggleButton, 15)
-        createButtonGradient(toggleButton, toggleButton.BackgroundColor3)
-        local toggleText = createButtonText(toggleButton, default and "ON" or "OFF", toggleButton.BackgroundColor3, isMobile and 10 or 12)
+        createButtonGradient(toggleButton, toggleButton.BackgroundColor3, false)
+        local toggleText = createButtonText(toggleButton, default and "ON" or "OFF", toggleButton.BackgroundColor3, isMobile and 10 or 12, false)
         
         local toggled = default or false
         
-        toggleButton.MouseButton1Click:Connect(function()
+        toggleButton.MouseButton1Down:Connect(function()
+            createButtonGradient(toggleButton, toggleButton.BackgroundColor3, true)
+            createButtonText(toggleButton, toggleText.Text, toggleButton.BackgroundColor3, isMobile and 10 or 12, true)
+        end)
+        
+        toggleButton.MouseButton1Up:Connect(function()
             toggled = not toggled
             local newColor = toggled and Color3.fromRGB(80, 180, 120) or Color3.fromRGB(200, 70, 70)
             toggleButton.BackgroundColor3 = newColor
-            createButtonGradient(toggleButton, newColor)
+            createButtonGradient(toggleButton, newColor, false)
             toggleText:Destroy()
-            toggleText = createButtonText(toggleButton, toggled and "ON" or "OFF", newColor, isMobile and 10 or 12)
+            toggleText = createButtonText(toggleButton, toggled and "ON" or "OFF", newColor, isMobile and 10 or 12, false)
             if callback then callback(toggled) end
+        end)
+        
+        toggleButton.MouseLeave:Connect(function()
+            createButtonGradient(toggleButton, toggleButton.BackgroundColor3, false)
+            createButtonText(toggleButton, toggleText.Text, toggleButton.BackgroundColor3, isMobile and 10 or 12, false)
         end)
         
         table.insert(self.Elements, {frame, toggleButton})
@@ -422,7 +586,7 @@ function YUUGTRL:CreateWindow(title, size)
         fill.Parent = sliderBg
         
         createCorner(fill, 10)
-        createButtonGradient(fill, Color3.fromRGB(80, 100, 220))
+        createButtonGradient(fill, Color3.fromRGB(80, 100, 220), false)
         
         local button = Instance.new("TextButton")
         button.Name = "DragButton"
@@ -435,18 +599,20 @@ function YUUGTRL:CreateWindow(title, size)
         button.AutoButtonColor = false
         
         createCorner(button, 10)
-        createButtonGradient(button, Color3.fromRGB(255, 255, 255))
+        createButtonGradient(button, Color3.fromRGB(255, 255, 255), false)
         
         local value = default or min
         local dragging = false
         
         button.MouseButton1Down:Connect(function()
             dragging = true
+            createButtonGradient(button, Color3.fromRGB(255, 255, 255), true)
         end)
         
         UserInputService.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = false
+                createButtonGradient(button, Color3.fromRGB(255, 255, 255), false)
             end
         end)
         
@@ -524,7 +690,23 @@ function YUUGTRL:CreateWindow(title, size)
         button.Parent = frame
         
         createCorner(button, 10)
-        createButtonGradient(button, Color3.fromRGB(45, 45, 55))
+        createButtonGradient(button, Color3.fromRGB(45, 45, 55), false)
+        local buttonText = createButtonText(button, text .. " ▼", Color3.fromRGB(45, 45, 55), isMobile and 11 or 13, false)
+        
+        button.MouseButton1Down:Connect(function()
+            createButtonGradient(button, Color3.fromRGB(45, 45, 55), true)
+            createButtonText(button, text .. " ▼", Color3.fromRGB(45, 45, 55), isMobile and 11 or 13, true)
+        end)
+        
+        button.MouseButton1Up:Connect(function()
+            createButtonGradient(button, Color3.fromRGB(45, 45, 55), false)
+            createButtonText(button, text .. " ▼", Color3.fromRGB(45, 45, 55), isMobile and 11 or 13, false)
+        end)
+        
+        button.MouseLeave:Connect(function()
+            createButtonGradient(button, Color3.fromRGB(45, 45, 55), false)
+            createButtonText(button, text .. " ▼", Color3.fromRGB(45, 45, 55), isMobile and 11 or 13, false)
+        end)
         
         local dropdownFrame = Instance.new("Frame")
         dropdownFrame.Name = "DropdownFrame"
@@ -561,12 +743,27 @@ function YUUGTRL:CreateWindow(title, size)
             optionButton.Parent = dropdownList
             
             createCorner(optionButton, 6)
-            createButtonGradient(optionButton, Color3.fromRGB(45, 45, 55))
+            createButtonGradient(optionButton, Color3.fromRGB(45, 45, 55), false)
+            local optionText = createButtonText(optionButton, option, Color3.fromRGB(45, 45, 55), isMobile and 10 or 12, false)
             
-            optionButton.MouseButton1Click:Connect(function()
+            optionButton.MouseButton1Down:Connect(function()
+                createButtonGradient(optionButton, Color3.fromRGB(45, 45, 55), true)
+                createButtonText(optionButton, option, Color3.fromRGB(45, 45, 55), isMobile and 10 or 12, true)
+            end)
+            
+            optionButton.MouseButton1Up:Connect(function()
+                createButtonGradient(optionButton, Color3.fromRGB(45, 45, 55), false)
+                createButtonText(optionButton, option, Color3.fromRGB(45, 45, 55), isMobile and 10 or 12, false)
                 button.Text = option .. " ▼"
+                buttonText:Destroy()
+                buttonText = createButtonText(button, option .. " ▼", Color3.fromRGB(45, 45, 55), isMobile and 11 or 13, false)
                 dropdownFrame.Visible = false
                 if callback then callback(option) end
+            end)
+            
+            optionButton.MouseLeave:Connect(function()
+                createButtonGradient(optionButton, Color3.fromRGB(45, 45, 55), false)
+                createButtonText(optionButton, option, Color3.fromRGB(45, 45, 55), isMobile and 10 or 12, false)
             end)
         end
         
@@ -614,13 +811,18 @@ function YUUGTRL:CreateWindow(title, size)
         box.Parent = frame
         
         createCorner(box, 8)
-        createButtonGradient(box, Color3.fromRGB(45, 45, 55))
+        createButtonGradient(box, Color3.fromRGB(45, 45, 55), false)
+        
+        box.Focused:Connect(function()
+            createButtonGradient(box, Color3.fromRGB(45, 45, 55), true)
+        end)
         
         box.FocusLost:Connect(function(enterPressed)
+            createButtonGradient(box, Color3.fromRGB(45, 45, 55), false)
             if enterPressed and callback then
                 callback(box.Text)
             end
-        end)
+        end))
         
         table.insert(self.Elements, {frame, box})
         
@@ -653,8 +855,8 @@ function YUUGTRL:CreateWindow(title, size)
             Elements = {}
         }
         
-        function tabObj:AddButton(text, color, callback)
-            local btn = windowObj:AddButton(text, color, callback)
+        function tabObj:AddButton(text, color, callback, toggleMode)
+            local btn = windowObj:AddButton(text, color, callback, toggleMode)
             btn.Parent = tabFrame
             table.insert(self.Elements, btn)
             return btn
@@ -713,7 +915,23 @@ function YUUGTRL:CreateWindow(title, size)
             tabButton.Parent = barFrame
             
             createCorner(tabButton, 8)
-            createButtonGradient(tabButton, Color3.fromRGB(80, 100, 220))
+            createButtonGradient(tabButton, Color3.fromRGB(80, 100, 220), false)
+            local tabText = createButtonText(tabButton, tabName, Color3.fromRGB(80, 100, 220), isMobile and 10 or 12, false)
+            
+            tabButton.MouseButton1Down:Connect(function()
+                createButtonGradient(tabButton, Color3.fromRGB(80, 100, 220), true)
+                createButtonText(tabButton, tabName, Color3.fromRGB(80, 100, 220), isMobile and 10 or 12, true)
+            end)
+            
+            tabButton.MouseButton1Up:Connect(function()
+                createButtonGradient(tabButton, Color3.fromRGB(80, 100, 220), false)
+                createButtonText(tabButton, tabName, Color3.fromRGB(80, 100, 220), isMobile and 10 or 12, false)
+            end)
+            
+            tabButton.MouseLeave:Connect(function()
+                createButtonGradient(tabButton, Color3.fromRGB(80, 100, 220), false)
+                createButtonText(tabButton, tabName, Color3.fromRGB(80, 100, 220), isMobile and 10 or 12, false)
+            end)
             
             local tabContent = self:CreateTab(tabName)
             tabContent.Frame.Position = UDim2.new(0, 0, 0, barFrame.Size.Y.Offset + 10)
@@ -790,8 +1008,23 @@ function YUUGTRL:CreateWindow(title, size)
         settingsClose.Parent = settingsHeader
         
         createCorner(settingsClose, 8)
-        createButtonGradient(settingsClose, Color3.fromRGB(200, 70, 70))
-        createButtonText(settingsClose, "×", Color3.fromRGB(200, 70, 70), isMobile and 16 or 18)
+        createButtonGradient(settingsClose, Color3.fromRGB(200, 70, 70), false)
+        createButtonText(settingsClose, "×", Color3.fromRGB(200, 70, 70), isMobile and 16 or 18, false)
+        
+        settingsClose.MouseButton1Down:Connect(function()
+            createButtonGradient(settingsClose, Color3.fromRGB(200, 70, 70), true)
+            createButtonText(settingsClose, "×", Color3.fromRGB(200, 70, 70), isMobile and 16 or 18, true)
+        end)
+        
+        settingsClose.MouseButton1Up:Connect(function()
+            createButtonGradient(settingsClose, Color3.fromRGB(200, 70, 70), false)
+            createButtonText(settingsClose, "×", Color3.fromRGB(200, 70, 70), isMobile and 16 or 18, false)
+        end)
+        
+        settingsClose.MouseLeave:Connect(function()
+            createButtonGradient(settingsClose, Color3.fromRGB(200, 70, 70), false)
+            createButtonText(settingsClose, "×", Color3.fromRGB(200, 70, 70), isMobile and 16 or 18, false)
+        end)
         
         local settingsContainer = Instance.new("Frame")
         settingsContainer.Name = "SettingsContainer"
@@ -848,10 +1081,14 @@ function YUUGTRL:CreateWindow(title, size)
             return label
         end
         
-        function settingsObj:AddButton(text, color, callback)
+        function settingsObj:AddButton(text, color, callback, toggleMode)
             if not callback and type(color) == "function" then
                 callback = color
                 color = Color3.fromRGB(80, 100, 220)
+                toggleMode = false
+            elseif type(toggleMode) == "function" then
+                callback = toggleMode
+                toggleMode = false
             end
             
             color = color or Color3.fromRGB(80, 100, 220)
@@ -864,13 +1101,50 @@ function YUUGTRL:CreateWindow(title, size)
             button.Parent = self.Container
             button.AutoButtonColor = false
             
-            createCorner(button, 10)
-            createButtonGradient(button, color)
-            createButtonText(button, text, color, isMobile and 11 or 13)
+            local isPressed = false
+            local isToggled = false
+            local originalColor = color
             
-            button.MouseButton1Click:Connect(function()
-                if callback then callback() end
-            end)
+            createCorner(button, 10)
+            createButtonGradient(button, color, false)
+            local buttonText = createButtonText(button, text, color, isMobile and 11 or 13, false)
+            
+            if toggleMode then
+                button.MouseButton1Click:Connect(function()
+                    isToggled = not isToggled
+                    if isToggled then
+                        createButtonGradient(button, color, true)
+                        createButtonText(button, "✓ " .. text, color, isMobile and 11 or 13, true)
+                    else
+                        createButtonGradient(button, color, false)
+                        createButtonText(button, text, color, isMobile and 11 or 13, false)
+                    end
+                    if callback then callback(isToggled) end
+                end)
+            else
+                button.MouseButton1Down:Connect(function()
+                    isPressed = true
+                    createButtonGradient(button, color, true)
+                    createButtonText(button, text, color, isMobile and 11 or 13, true)
+                end)
+                
+                button.MouseButton1Up:Connect(function()
+                    if isPressed then
+                        isPressed = false
+                        createButtonGradient(button, color, false)
+                        createButtonText(button, text, color, isMobile and 11 or 13, false)
+                        if callback then callback() end
+                    end
+                end)
+                
+                button.MouseLeave:Connect(function()
+                    if isPressed then
+                        isPressed = false
+                        createButtonGradient(button, color, false)
+                        createButtonText(button, text, color, isMobile and 11 or 13, false)
+                    end
+                end)
+            end
             
             self.Container.CanvasSize = UDim2.new(0, 0, 0, self.Layout.AbsoluteContentSize.Y + 10)
             
@@ -912,7 +1186,7 @@ function YUUGTRL:CreateWindow(title, size)
             fill.Parent = sliderBg
             
             createCorner(fill, 10)
-            createButtonGradient(fill, Color3.fromRGB(80, 100, 220))
+            createButtonGradient(fill, Color3.fromRGB(80, 100, 220), false)
             
             local button = Instance.new("TextButton")
             button.Name = "DragButton"
@@ -925,18 +1199,20 @@ function YUUGTRL:CreateWindow(title, size)
             button.AutoButtonColor = false
             
             createCorner(button, 10)
-            createButtonGradient(button, Color3.fromRGB(255, 255, 255))
+            createButtonGradient(button, Color3.fromRGB(255, 255, 255), false)
             
             local value = default or min
             local dragging = false
             
             button.MouseButton1Down:Connect(function()
                 dragging = true
+                createButtonGradient(button, Color3.fromRGB(255, 255, 255), true)
             end)
             
             UserInputService.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
                     dragging = false
+                    createButtonGradient(button, Color3.fromRGB(255, 255, 255), false)
                 end
             end)
             
@@ -1038,5 +1314,7 @@ end
 function YUUGTRL:IsMobile()
     return isMobile
 end
+
+spawn(showLoadMessage)
 
 return YUUGTRL
