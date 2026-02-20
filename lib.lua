@@ -59,16 +59,44 @@ local function Create(props)
 end
 
 local function ApplyButtonStyle(button, color)
+    for _, v in pairs(button:GetChildren()) do
+        if v:IsA("UIGradient") then
+            v:Destroy()
+        end
+    end
+    
+    local darker = Color3.fromRGB(math.max(color.R * 255 - 30, 0), math.max(color.G * 255 - 30, 0), math.max(color.B * 255 - 30, 0))
     local gradient = Instance.new("UIGradient")
     gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(math.min(color.R * 255 + 30, 255), math.min(color.G * 255 + 30, 255), math.min(color.B * 255 + 30, 255))),
-        ColorSequenceKeypoint.new(1, color)
+        ColorSequenceKeypoint.new(0, color),
+        ColorSequenceKeypoint.new(1, darker)
     })
     gradient.Rotation = 90
     gradient.Parent = button
     
-    local brighter = Color3.fromRGB(math.min(color.R * 255 + 50, 255), math.min(color.G * 255 + 50, 255), math.min(color.B * 255 + 50, 255))
+    local brighter = Color3.fromRGB(math.min(color.R * 255 + 40, 255), math.min(color.G * 255 + 40, 255), math.min(color.B * 255 + 40, 255))
     button.TextColor3 = brighter
+end
+
+local function DarkenButton(button)
+    if not button:FindFirstChild("UIGradient") then return end
+    local gradient = button:FindFirstChild("UIGradient")
+    local color = gradient.Color.Keypoints[1].Value
+    local darker = Color3.fromRGB(math.max(color.R * 255 - 50, 0), math.max(color.G * 255 - 50, 0), math.max(color.B * 255 - 50, 0))
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, darker),
+        ColorSequenceKeypoint.new(1, darker)
+    })
+end
+
+local function RestoreButtonStyle(button, color)
+    if not button:FindFirstChild("UIGradient") then return end
+    local gradient = button:FindFirstChild("UIGradient")
+    local darker = Color3.fromRGB(math.max(color.R * 255 - 30, 0), math.max(color.G * 255 - 30, 0), math.max(color.B * 255 - 30, 0))
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, color),
+        ColorSequenceKeypoint.new(1, darker)
+    })
 end
 
 function YUUGTRL:CreateWindow(title)
@@ -140,6 +168,16 @@ function YUUGTRL:CreateWindow(title)
         Parent = Close
     })
     ApplyButtonStyle(Close, Color3.fromRGB(255, 50, 50))
+    
+    Close.MouseButton1Down:Connect(function()
+        DarkenButton(Close)
+    end)
+    Close.MouseButton1Up:Connect(function()
+        RestoreButtonStyle(Close, Color3.fromRGB(255, 50, 50))
+    end)
+    Close.MouseLeave:Connect(function()
+        RestoreButtonStyle(Close, Color3.fromRGB(255, 50, 50))
+    end)
     
     local Tabs = Create({
         type = "Frame",
@@ -230,6 +268,16 @@ function YUUGTRL:CreateWindow(title)
         })
         ApplyButtonStyle(TabButton, Color3.fromRGB(50, 50, 60))
         
+        TabButton.MouseButton1Down:Connect(function()
+            DarkenButton(TabButton)
+        end)
+        TabButton.MouseButton1Up:Connect(function()
+            RestoreButtonStyle(TabButton, Color3.fromRGB(50, 50, 60))
+        end)
+        TabButton.MouseLeave:Connect(function()
+            RestoreButtonStyle(TabButton, Color3.fromRGB(50, 50, 60))
+        end)
+        
         lastTabPosition = lastTabPosition + 85
         
         local tabFrame = Create({
@@ -270,11 +318,13 @@ function YUUGTRL:CreateWindow(title)
             Frame = tabFrame
         }
         
-        function tab:CreateButton(text, callback)
+        function tab:CreateButton(text, callback, color)
+            local btnColor = color or Color3.fromRGB(60, 100, 200)
+            
             local Button = Create({
                 type = "TextButton",
                 Size = UDim2.new(1, -10, 0, 35),
-                BackgroundColor3 = Color3.fromRGB(60, 60, 70),
+                BackgroundColor3 = btnColor,
                 Text = text,
                 TextColor3 = Color3.fromRGB(255, 255, 255),
                 Font = Enum.Font.Gotham,
@@ -287,7 +337,17 @@ function YUUGTRL:CreateWindow(title)
                 CornerRadius = UDim.new(0, 6),
                 Parent = Button
             })
-            ApplyButtonStyle(Button, Color3.fromRGB(60, 60, 70))
+            ApplyButtonStyle(Button, btnColor)
+            
+            Button.MouseButton1Down:Connect(function()
+                DarkenButton(Button)
+            end)
+            Button.MouseButton1Up:Connect(function()
+                RestoreButtonStyle(Button, btnColor)
+            end)
+            Button.MouseLeave:Connect(function()
+                RestoreButtonStyle(Button, btnColor)
+            end)
             
             Button.MouseButton1Click:Connect(function()
                 local success, err = pcall(callback)
@@ -332,11 +392,12 @@ function YUUGTRL:CreateWindow(title)
                 Parent = ToggleFrame
             })
             
+            local toggleColor = default and Color3.fromRGB(80, 220, 100) or Color3.fromRGB(220, 80, 80)
             local ToggleBtn = Create({
                 type = "TextButton",
                 Size = UDim2.new(0, 30, 0, 30),
                 Position = UDim2.new(1, -40, 0, 2.5),
-                BackgroundColor3 = default and Color3.fromRGB(80, 220, 100) or Color3.fromRGB(220, 80, 80),
+                BackgroundColor3 = toggleColor,
                 Text = "",
                 Parent = ToggleFrame
             })
@@ -346,14 +407,25 @@ function YUUGTRL:CreateWindow(title)
                 CornerRadius = UDim.new(0, 15),
                 Parent = ToggleBtn
             })
-            ApplyButtonStyle(ToggleBtn, ToggleBtn.BackgroundColor3)
+            ApplyButtonStyle(ToggleBtn, toggleColor)
+            
+            ToggleBtn.MouseButton1Down:Connect(function()
+                DarkenButton(ToggleBtn)
+            end)
+            ToggleBtn.MouseButton1Up:Connect(function()
+                RestoreButtonStyle(ToggleBtn, toggleColor)
+            end)
+            ToggleBtn.MouseLeave:Connect(function()
+                RestoreButtonStyle(ToggleBtn, toggleColor)
+            end)
             
             local toggled = default or false
             
             ToggleBtn.MouseButton1Click:Connect(function()
                 toggled = not toggled
-                ToggleBtn.BackgroundColor3 = toggled and Color3.fromRGB(80, 220, 100) or Color3.fromRGB(220, 80, 80)
-                ApplyButtonStyle(ToggleBtn, ToggleBtn.BackgroundColor3)
+                toggleColor = toggled and Color3.fromRGB(80, 220, 100) or Color3.fromRGB(220, 80, 80)
+                ToggleBtn.BackgroundColor3 = toggleColor
+                ApplyButtonStyle(ToggleBtn, toggleColor)
                 local success, err = pcall(callback, toggled)
                 if not success then warn(err) end
             end)
