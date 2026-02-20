@@ -133,25 +133,47 @@ function YUUGTRL:MakeButton(button, color, style)
                 self:RestoreButtonStyle(button, btnColor)
             end
         end)
+    elseif btnStyle == "hover" then
+        button.MouseEnter:Connect(function() 
+            self:LightenButton(button) 
+        end)
+        button.MouseLeave:Connect(function() 
+            self:RestoreButtonStyle(button, btnColor) 
+        end)
+    elseif btnStyle == "hover-dark" then
+        button.MouseEnter:Connect(function() 
+            self:DarkenButton(button) 
+        end)
+        button.MouseLeave:Connect(function() 
+            self:RestoreButtonStyle(button, btnColor) 
+        end)
     end
     
     return button
 end
 
-function YUUGTRL:CreateWindow(title, size, position)
+function YUUGTRL:CreateWindow(title, size, position, theme)
     local ScreenGui = Create({
         type = "ScreenGui",
-        Name = "YUUGTRL",
+        Name = "YUUGTRL_" .. title:gsub("%s+", ""),
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
         DisplayOrder = 999,
-        ResetOnSpawn = false
+        ResetOnSpawn = false,
+        Parent = player:WaitForChild("PlayerGui")
     })
+    
+    theme = theme or {}
+    local mainColor = theme.MainColor or Color3.fromRGB(30, 30, 40)
+    local headerColor = theme.HeaderColor or Color3.fromRGB(40, 40, 50)
+    local accentColor = theme.AccentColor or Color3.fromRGB(80, 100, 220)
+    local closeColor = theme.CloseColor or Color3.fromRGB(255, 100, 100)
+    local textColor = theme.TextColor or Color3.fromRGB(255, 255, 255)
     
     local Main = Create({
         type = "Frame",
-        Size = size or (isMobile and UDim2.new(0, 280, 0, 400) or UDim2.new(0, 350, 0, 450)),
+        Size = size or UDim2.new(0, 350, 0, 450),
         Position = position or UDim2.new(0.5, -175, 0.5, -225),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 40),
+        BackgroundColor3 = mainColor,
         BorderSizePixel = 0,
         Parent = ScreenGui
     })
@@ -161,24 +183,21 @@ function YUUGTRL:CreateWindow(title, size, position)
     local Header = Create({
         type = "Frame",
         Size = UDim2.new(1, 0, 0, 40),
-        BackgroundColor3 = Color3.fromRGB(40, 40, 50),
+        BackgroundColor3 = headerColor,
         BorderSizePixel = 0,
         Parent = Main
     })
     
     Create({type = "UICorner",CornerRadius = UDim.new(0, 12),Parent = Header})
     
-    local Title = self:CreateLabel(Header, title or "YUUGTRL", UDim2.new(0, 15, 0, 0), UDim2.new(1, -120, 1, 0))
+    local Title = self:CreateLabel(Header, title, UDim2.new(0, 15, 0, 0), UDim2.new(1, -120, 1, 0), textColor)
     Title.TextXAlignment = Enum.TextXAlignment.Left
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
     Title.TextSize = 18
     
-    local SettingsBtn = self:CreateButton(Header, "⚙", nil, Color3.fromRGB(100, 100, 200), UDim2.new(1, -70, 0, 5), UDim2.new(0, 30, 0, 30), "darken")
+    local SettingsBtn = self:CreateButton(Header, "⚙", nil, accentColor, UDim2.new(1, -70, 0, 5), UDim2.new(0, 30, 0, 30), "darken")
     
-    local Close = self:CreateButton(Header, "X", nil, Color3.fromRGB(255, 100, 100), UDim2.new(1, -35, 0, 5), UDim2.new(0, 30, 0, 30), "darken")
+    local Close = self:CreateButton(Header, "X", nil, closeColor, UDim2.new(1, -35, 0, 5), UDim2.new(0, 30, 0, 30), "darken")
     Close.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
-    
-    ScreenGui.Parent = player:WaitForChild("PlayerGui")
     
     local dragging, dragInput, dragStart, startPos
     
@@ -214,13 +233,32 @@ function YUUGTRL:CreateWindow(title, size, position)
         Header = Header,
         Title = Title,
         Close = Close,
-        SettingsBtn = SettingsBtn
+        SettingsBtn = SettingsBtn,
+        Theme = theme
     }
     
-    function window:AddToMain(instance, position, size)
-        instance.Parent = Main
-        if position then instance.Position = position end
-        if size then instance.Size = size end
+    function window:CreateFrame(size, position, color, radius)
+        return YUUGTRL:CreateFrame(self.Main, size, position, color, radius)
+    end
+    
+    function window:CreateLabel(text, position, size, color)
+        return YUUGTRL:CreateLabel(self.Main, text, position, size, color)
+    end
+    
+    function window:CreateButton(text, callback, color, position, size, style)
+        return YUUGTRL:CreateButton(self.Main, text, callback, color, position, size, style)
+    end
+    
+    function window:CreateToggle(text, default, callback, color, position, size)
+        return YUUGTRL:CreateToggle(self.Main, text, default, callback, color, position, size)
+    end
+    
+    function window:CreateSlider(text, min, max, default, callback, position, size)
+        return YUUGTRL:CreateSlider(self.Main, text, min, max, default, callback, position, size)
+    end
+    
+    function window:SetSettingsCallback(callback)
+        SettingsBtn.MouseButton1Click:Connect(callback)
     end
     
     function window:Destroy()
@@ -302,9 +340,7 @@ function YUUGTRL:CreateToggle(parent, text, default, callback, color, position, 
         local newColor = toggled and Color3.fromRGB(80, 220, 100) or Color3.fromRGB(220, 80, 80)
         toggleBtn.BackgroundColor3 = newColor
         self:ApplyButtonStyle(toggleBtn, newColor)
-        if callback then
-            callback(toggled)
-        end
+        if callback then callback(toggled) end
     end)
     
     return toggleBtn
