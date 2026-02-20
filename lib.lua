@@ -17,13 +17,6 @@ local function showLoadMessage()
     loadGui.IgnoreGuiInset = true
     loadGui.DisplayOrder = 9999
     
-    local bg = Instance.new("Frame")
-    bg.Name = "Background"
-    bg.Size = UDim2.new(1, 0, 1, 0)
-    bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    bg.BackgroundTransparency = 0.5
-    bg.Parent = loadGui
-    
     local loadFrame = Instance.new("Frame")
     loadFrame.Name = "LoadFrame"
     loadFrame.Size = UDim2.new(0, 300, 0, 120)
@@ -31,6 +24,8 @@ local function showLoadMessage()
     loadFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
     loadFrame.BorderSizePixel = 0
     loadFrame.Parent = loadGui
+    loadFrame.Active = true
+    loadFrame.Draggable = true
     
     local shadow = Instance.new("ImageLabel")
     shadow.Name = "Shadow"
@@ -133,11 +128,6 @@ local function showLoadMessage()
         Position = UDim2.new(0.5, -150, 1.5, 0)
     })
     tweenOut:Play()
-    
-    local bgTween = TweenService:Create(bg, TweenInfo.new(0.5), {
-        BackgroundTransparency = 1
-    })
-    bgTween:Play()
     
     tweenOut.Completed:Connect(function()
         loadGui:Destroy()
@@ -1267,6 +1257,7 @@ function YUUGTRL:CreateNotification(title, message, duration)
     frame.BorderSizePixel = 0
     frame.Parent = notifGui
     frame.ClipsDescendants = true
+    frame.Draggable = true
     
     createShadow(frame)
     createCorner(frame, 16)
