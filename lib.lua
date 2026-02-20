@@ -82,11 +82,29 @@ local function DarkenButton(button)
     gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, darker),ColorSequenceKeypoint.new(1, darker)})
 end
 
+local function LightenButton(button)
+    if not button:FindFirstChild("UIGradient") then return end
+    local gradient = button:FindFirstChild("UIGradient")
+    local color = gradient.Color.Keypoints[1].Value
+    local lighter = Color3.fromRGB(math.min(color.R * 255 + 70, 255), math.min(color.G * 255 + 70, 255), math.min(color.B * 255 + 70, 255))
+    gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, lighter),ColorSequenceKeypoint.new(1, lighter)})
+end
+
 local function RestoreButtonStyle(button, color)
     if not button:FindFirstChild("UIGradient") then return end
     local gradient = button:FindFirstChild("UIGradient")
     local darker = Color3.fromRGB(math.max(color.R * 255 - 50, 0), math.max(color.G * 255 - 50, 0), math.max(color.B * 255 - 50, 0))
     gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, color),ColorSequenceKeypoint.new(1, darker)})
+end
+
+local function SetButtonState(button, state, onColor, offColor)
+    if state then
+        button.BackgroundColor3 = onColor or Color3.fromRGB(80, 220, 100)
+        ApplyButtonStyle(button, onColor or Color3.fromRGB(80, 220, 100))
+    else
+        button.BackgroundColor3 = offColor or Color3.fromRGB(220, 80, 80)
+        ApplyButtonStyle(button, offColor or Color3.fromRGB(220, 80, 80))
+    end
 end
 
 function YUUGTRL:CreateWindow(title)
@@ -257,11 +275,12 @@ function YUUGTRL:CreateWindow(title)
         
         local tab = {Frame = tabFrame}
         
-        function tab:CreateButton(text, callback, color, parent, position, size)
+        function tab:CreateButton(text, callback, color, parent, position, size, style)
             local btnParent = parent or tabFrame
             local btnColor = color or Color3.fromRGB(60, 100, 200)
             local btnSize = size or UDim2.new(1, -10, 0, 35)
             local btnPos = position or UDim2.new(0, 0, 0, 0)
+            local btnStyle = style or "darken"
             
             local Button = Create({
                 type = "TextButton",
@@ -278,8 +297,23 @@ function YUUGTRL:CreateWindow(title)
             Create({type = "UICorner",CornerRadius = UDim.new(0, 6),Parent = Button})
             ApplyButtonStyle(Button, btnColor)
             
-            Button.MouseButton1Down:Connect(function()DarkenButton(Button)end)
-            Button.MouseButton1Up:Connect(function()RestoreButtonStyle(Button, btnColor)end)
+            if btnStyle == "darken" then
+                Button.MouseButton1Down:Connect(function()DarkenButton(Button)end)
+                Button.MouseButton1Up:Connect(function()RestoreButtonStyle(Button, btnColor)end)
+            elseif btnStyle == "lighten" then
+                Button.MouseButton1Down:Connect(function()LightenButton(Button)end)
+                Button.MouseButton1Up:Connect(function()RestoreButtonStyle(Button, btnColor)end)
+            elseif btnStyle == "toggle" then
+                local toggled = false
+                Button.MouseButton1Click:Connect(function()
+                    toggled = not toggled
+                    if toggled then
+                        SetButtonState(Button, true, Color3.fromRGB(80, 220, 100), Color3.fromRGB(220, 80, 80))
+                    else
+                        SetButtonState(Button, false, Color3.fromRGB(80, 220, 100), Color3.fromRGB(220, 80, 80))
+                    end
+                end)
+            end
             
             Button.MouseButton1Click:Connect(function()
                 local success, err = pcall(callback)
@@ -289,10 +323,11 @@ function YUUGTRL:CreateWindow(title)
             return Button
         end
         
-        function tab:CreateToggle(text, default, callback, parent, position, size)
+        function tab:CreateToggle(text, default, callback, parent, position, size, style)
             local btnParent = parent or tabFrame
             local btnSize = size or UDim2.new(1, -10, 0, 35)
             local btnPos = position or UDim2.new(0, 0, 0, 0)
+            local btnStyle = style or "darken"
             
             local ToggleFrame = Create({
                 type = "Frame",
@@ -335,8 +370,13 @@ function YUUGTRL:CreateWindow(title)
             Create({type = "UICorner",CornerRadius = UDim.new(0, 15),Parent = ToggleBtn})
             ApplyButtonStyle(ToggleBtn, toggleColor)
             
-            ToggleBtn.MouseButton1Down:Connect(function()DarkenButton(ToggleBtn)end)
-            ToggleBtn.MouseButton1Up:Connect(function()RestoreButtonStyle(ToggleBtn, toggleColor)end)
+            if btnStyle == "darken" then
+                ToggleBtn.MouseButton1Down:Connect(function()DarkenButton(ToggleBtn)end)
+                ToggleBtn.MouseButton1Up:Connect(function()RestoreButtonStyle(ToggleBtn, toggleColor)end)
+            elseif btnStyle == "lighten" then
+                ToggleBtn.MouseButton1Down:Connect(function()LightenButton(ToggleBtn)end)
+                ToggleBtn.MouseButton1Up:Connect(function()RestoreButtonStyle(ToggleBtn, toggleColor)end)
+            end
             
             local toggled = default or false
             
