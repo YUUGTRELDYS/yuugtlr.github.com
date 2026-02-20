@@ -5,6 +5,44 @@ local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local isMobile = UserInputService.TouchEnabled
 
+local splash = Instance.new("ScreenGui")
+splash.Name = "YUUGTRLSplash"
+splash.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+splash.DisplayOrder = 9999
+splash.ResetOnSpawn = false
+splash.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 80)
+frame.Position = UDim2.new(0.5, -100, 0.5, -40)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BackgroundTransparency = 0
+frame.BorderSizePixel = 0
+frame.Parent = splash
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = frame
+
+local text = Instance.new("TextLabel")
+text.Size = UDim2.new(1, 0, 1, 0)
+text.BackgroundTransparency = 1
+text.Text = "YUUGTRL"
+text.TextColor3 = Color3.fromRGB(170, 85, 255)
+text.Font = Enum.Font.GothamBold
+text.TextSize = 30
+text.Parent = frame
+
+task.wait(1.5)
+
+local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local tween = TweenService:Create(frame, tweenInfo, {BackgroundTransparency = 1})
+tween:Play()
+TweenService:Create(text, tweenInfo, {TextTransparency = 1}):Play()
+
+task.wait(0.5)
+splash:Destroy()
+
 local function Create(props)
     local obj = Instance.new(props.type)
     for i, v in pairs(props) do
