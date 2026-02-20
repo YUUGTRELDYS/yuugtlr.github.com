@@ -1,659 +1,658 @@
-local YUUGTRL = {}
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
+
+local ALLOWED_PLACE_ID = 7346416636
+if game.PlaceId ~= ALLOWED_PLACE_ID then
+    return
+end
+
+local currentLanguage = "English"
+local scriptVisible = true
+local currentTransparency = 0
 local isMobile = UserInputService.TouchEnabled
 
-local colors = {
-	background = Color3.fromRGB(25, 25, 35),
-	backgroundLight = Color3.fromRGB(35, 35, 45),
-	backgroundDark = Color3.fromRGB(20, 20, 28),
-	accent = Color3.fromRGB(80, 100, 220),
-	accentHover = Color3.fromRGB(100, 120, 240),
-	success = Color3.fromRGB(60, 180, 80),
-	danger = Color3.fromRGB(220, 70, 70),
-	warning = Color3.fromRGB(220, 180, 70),
-	info = Color3.fromRGB(140, 80, 220),
-	text = Color3.fromRGB(255, 255, 255),
-	textDim = Color3.fromRGB(200, 200, 220)
+local languages = {
+    English = {
+        title = "TEST PANEL",
+        button1 = "BUTTON 1",
+        button2 = "BUTTON 2", 
+        button3 = "BUTTON 3",
+        button4 = "BUTTON 4",
+        settings = "Settings",
+        close = "Close",
+        transparency = "Transparency"
+    },
+    Russian = {
+        title = "ТЕСТОВАЯ ПАНЕЛЬ",
+        button1 = "КНОПКА 1",
+        button2 = "КНОПКА 2",
+        button3 = "КНОПКА 3", 
+        button4 = "КНОПКА 4",
+        settings = "Настройки",
+        close = "Закрыть",
+        transparency = "Прозрачность"
+    },
+    Arabic = {
+        title = "لوحة الاختبار",
+        button1 = "زر 1",
+        button2 = "زر 2",
+        button3 = "زر 3",
+        button4 = "زر 4",
+        settings = "الإعدادات",
+        close = "إغلاق",
+        transparency = "الشفافية"
+    }
 }
 
-local libraryLoaded = false
-
-local function showWatermark()
-	if libraryLoaded then return end
-	libraryLoaded = true
-	
-	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = "YUUGTRL_Watermark"
-	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	screenGui.DisplayOrder = 9999
-	screenGui.ResetOnSpawn = false
-	screenGui.Parent = player:WaitForChild("PlayerGui")
-	
-	local frame = Instance.new("Frame")
-	frame.Size = UDim2.new(0, 200, 0, 50)
-	frame.Position = UDim2.new(1, -210, 1, -60)
-	frame.BackgroundColor3 = colors.background
-	frame.BackgroundTransparency = 0.1
-	frame.BorderSizePixel = 0
-	frame.Parent = screenGui
-	
-	local gradient = Instance.new("UIGradient")
-	gradient.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, colors.accent),
-		ColorSequenceKeypoint.new(0.5, colors.info),
-		ColorSequenceKeypoint.new(1, colors.accent)
-	})
-	gradient.Rotation = 45
-	gradient.Parent = frame
-	
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 8)
-	corner.Parent = frame
-	
-	local shadow = Instance.new("ImageLabel")
-	shadow.Name = "Shadow"
-	shadow.Size = UDim2.new(1, 15, 1, 15)
-	shadow.Position = UDim2.new(0, -7, 0, -7)
-	shadow.BackgroundTransparency = 1
-	shadow.Image = "rbxassetid://1316045217"
-	shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-	shadow.ImageTransparency = 0.9
-	shadow.ScaleType = Enum.ScaleType.Slice
-	shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-	shadow.Parent = frame
-	
-	local textLabel = Instance.new("TextLabel")
-	textLabel.Size = UDim2.new(1, 0, 0.6, 0)
-	textLabel.Position = UDim2.new(0, 0, 0, 5)
-	textLabel.BackgroundTransparency = 1
-	textLabel.Text = "YUUGTRL"
-	textLabel.TextColor3 = colors.text
-	textLabel.Font = Enum.Font.GothamBold
-	textLabel.TextSize = 20
-	textLabel.Parent = frame
-	
-	local versionLabel = Instance.new("TextLabel")
-	versionLabel.Size = UDim2.new(1, 0, 0.3, 0)
-	versionLabel.Position = UDim2.new(0, 0, 0.6, -5)
-	versionLabel.BackgroundTransparency = 1
-	versionLabel.Text = "Library v1.0"
-	versionLabel.TextColor3 = colors.textDim
-	versionLabel.Font = Enum.Font.Gotham
-	versionLabel.TextSize = 12
-	versionLabel.Parent = frame
-	
-	local closeButton = Instance.new("TextButton")
-	closeButton.Size = UDim2.new(0, 20, 0, 20)
-	closeButton.Position = UDim2.new(1, -25, 0, 5)
-	closeButton.BackgroundColor3 = colors.danger
-	closeButton.Text = "×"
-	closeButton.TextColor3 = colors.text
-	closeButton.Font = Enum.Font.GothamBold
-	closeButton.TextSize = 16
-	closeButton.Parent = frame
-	
-	local closeCorner = Instance.new("UICorner")
-	closeCorner.CornerRadius = UDim.new(0, 4)
-	closeCorner.Parent = closeButton
-	
-	closeButton.MouseButton1Click:Connect(function()
-		frame:Destroy()
-		task.wait(0.5)
-		screenGui:Destroy()
-	end)
-	
-	task.spawn(function()
-		task.wait(10)
-		if frame and frame.Parent then
-			for i = 1, 10 do
-				task.wait(0.1)
-				frame.BackgroundTransparency = frame.BackgroundTransparency + 0.1
-				textLabel.TextTransparency = textLabel.TextTransparency + 0.1
-				versionLabel.TextTransparency = versionLabel.TextTransparency + 0.1
-				closeButton.BackgroundTransparency = closeButton.BackgroundTransparency + 0.1
-				closeButton.TextTransparency = closeButton.TextTransparency + 0.1
-				shadow.ImageTransparency = shadow.ImageTransparency + 0.1
-			end
-			frame:Destroy()
-			screenGui:Destroy()
-		end
-	end)
+-- Функция для создания яркой версии цвета (для текста)
+local function getLighterColor(color, factor)
+    return Color3.new(
+        math.min(color.R + factor, 1),
+        math.min(color.G + factor, 1),
+        math.min(color.B + factor, 1)
+    )
 end
 
-local function darkenColor(color, percent)
-	return Color3.fromRGB(
-		math.max(color.R * 255 * (1 - percent), 0),
-		math.max(color.G * 255 * (1 - percent), 0),
-		math.max(color.B * 255 * (1 - percent), 0)
-	) / 255
+-- Функция для создания темной версии цвета (для тени)
+local function getDarkerColor(color, factor)
+    return Color3.new(
+        math.max(color.R - factor, 0),
+        math.max(color.G - factor, 0),
+        math.max(color.B - factor, 0)
+    )
 end
 
-local function lightenColor(color, percent)
-	return Color3.fromRGB(
-		math.min(color.R * 255 * (1 + percent), 255),
-		math.min(color.G * 255 * (1 + percent), 255),
-		math.min(color.B * 255 * (1 + percent), 255)
-	) / 255
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "TestPanel"
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.DisplayOrder = 999
+ScreenGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = isMobile and UDim2.new(0, 280, 0, 350) or UDim2.new(0, 350, 0, 420)
+MainFrame.Position = isMobile and UDim2.new(1, -295, 0.5, -175) or UDim2.new(1, -375, 0.5, -210)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+MainFrame.BorderSizePixel = 0
+
+local Gradient = Instance.new("UIGradient")
+Gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 50)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 35))
+})
+Gradient.Rotation = 45
+Gradient.Parent = MainFrame
+
+-- Тень для главного фрейма
+local Shadow = Instance.new("ImageLabel")
+Shadow.Name = "Shadow"
+Shadow.Size = UDim2.new(1, 15, 1, 15)
+Shadow.Position = UDim2.new(0, -7, 0, -7)
+Shadow.BackgroundTransparency = 1
+Shadow.Image = "rbxassetid://1316045217"
+Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.ImageTransparency = 0.9
+Shadow.ScaleType = Enum.ScaleType.Slice
+Shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 16)
+
+local Header = Instance.new("Frame")
+Header.Name = "Header"
+Header.Size = UDim2.new(1, 0, 0, isMobile and 35 or 45)
+Header.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+Header.BorderSizePixel = 0
+
+local HeaderGradient = Instance.new("UIGradient")
+HeaderGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 60, 80)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 55))
+})
+HeaderGradient.Parent = Header
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 16)
+
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(1, -60, 1, 0)
+Title.Position = UDim2.new(0, 12, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "TEST PANEL"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = isMobile and 14 or 18
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+local VersionLabel = Instance.new("TextLabel")
+VersionLabel.Name = "VersionLabel"
+VersionLabel.Size = UDim2.new(1, -60, 0, isMobile and 12 or 14)
+VersionLabel.Position = UDim2.new(0, 12, 1, isMobile and -14 or -16)
+VersionLabel.BackgroundTransparency = 1
+VersionLabel.Text = "by YUUGTRELDYS v2.1"
+VersionLabel.TextColor3 = Color3.fromRGB(170, 85, 255)
+VersionLabel.Font = Enum.Font.Gotham
+VersionLabel.TextSize = isMobile and 9 or 11
+VersionLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local SettingsButton = Instance.new("TextButton")
+SettingsButton.Name = "SettingsButton"
+SettingsButton.Size = UDim2.new(0, isMobile and 26 or 32, 0, isMobile and 26 or 32)
+SettingsButton.Position = UDim2.new(1, isMobile and -60 or -75, 0, isMobile and 4 or 6)
+SettingsButton.BackgroundColor3 = Color3.fromRGB(80, 100, 220)
+SettingsButton.Text = "⚙"
+SettingsButton.TextColor3 = getLighterColor(SettingsButton.BackgroundColor3, 0.5)
+SettingsButton.Font = Enum.Font.GothamBold
+SettingsButton.TextSize = isMobile and 14 or 16
+
+-- Тень для кнопки настроек
+local SettingsShadow = Instance.new("ImageLabel")
+SettingsShadow.Name = "SettingsShadow"
+SettingsShadow.Size = UDim2.new(1, 6, 1, 6)
+SettingsShadow.Position = UDim2.new(0, -3, 0, -3)
+SettingsShadow.BackgroundTransparency = 1
+SettingsShadow.Image = "rbxassetid://1316045217"
+SettingsShadow.ImageColor3 = getDarkerColor(SettingsButton.BackgroundColor3, 0.3)
+SettingsShadow.ImageTransparency = 0.7
+SettingsShadow.ScaleType = Enum.ScaleType.Slice
+SettingsShadow.SliceCenter = Rect.new(10, 10, 118, 118)
+SettingsShadow.Parent = SettingsButton
+
+local SettingsCorner = Instance.new("UICorner")
+SettingsCorner.CornerRadius = UDim.new(0, 8)
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Size = UDim2.new(0, isMobile and 26 or 32, 0, isMobile and 26 or 32)
+CloseButton.Position = UDim2.new(1, isMobile and -30 or -37, 0, isMobile and 4 or 6)
+CloseButton.BackgroundColor3 = Color3.fromRGB(220, 70, 70)
+CloseButton.Text = "×"
+CloseButton.TextColor3 = getLighterColor(CloseButton.BackgroundColor3, 0.5)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = isMobile and 16 or 20
+
+-- Тень для кнопки закрытия
+local CloseShadow = Instance.new("ImageLabel")
+CloseShadow.Name = "CloseShadow"
+CloseShadow.Size = UDim2.new(1, 6, 1, 6)
+CloseShadow.Position = UDim2.new(0, -3, 0, -3)
+CloseShadow.BackgroundTransparency = 1
+CloseShadow.Image = "rbxassetid://1316045217"
+CloseShadow.ImageColor3 = getDarkerColor(CloseButton.BackgroundColor3, 0.3)
+CloseShadow.ImageTransparency = 0.7
+CloseShadow.ScaleType = Enum.ScaleType.Slice
+CloseShadow.SliceCenter = Rect.new(10, 10, 118, 118)
+CloseShadow.Parent = CloseButton
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 8)
+
+-- Панель с кнопками
+local ButtonsPanel = Instance.new("Frame")
+ButtonsPanel.Name = "ButtonsPanel"
+ButtonsPanel.Size = UDim2.new(1, -20, 1, -80)
+ButtonsPanel.Position = UDim2.new(0, 10, 0, isMobile and 45 or 55)
+ButtonsPanel.BackgroundTransparency = 1
+
+local ButtonsBackground = Instance.new("Frame")
+ButtonsBackground.Name = "ButtonsBackground"
+ButtonsBackground.Size = UDim2.new(1, 0, 1, 0)
+ButtonsBackground.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+ButtonsBackground.BorderSizePixel = 0
+
+local ButtonsCorner = Instance.new("UICorner")
+ButtonsCorner.CornerRadius = UDim.new(0, 12)
+
+local ButtonsLayout = Instance.new("UIListLayout")
+ButtonsLayout.Padding = UDim.new(0, isMobile and 8 or 12)
+ButtonsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+ButtonsLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+
+-- Функция создания кнопки с тенью
+local function createStyledButton(name, text, color)
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Size = UDim2.new(0.8, 0, 0, isMobile and 40 or 50)
+    button.BackgroundColor3 = color
+    button.Text = text
+    button.TextColor3 = getLighterColor(color, 0.5)
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = isMobile and 14 or 16
+    button.AutoButtonColor = false
+    
+    -- Градиент для кнопки
+    local buttonGradient = Instance.new("UIGradient")
+    buttonGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, getLighterColor(color, 0.2)),
+        ColorSequenceKeypoint.new(1, color)
+    })
+    buttonGradient.Rotation = 90
+    buttonGradient.Parent = button
+    
+    -- Тень для кнопки
+    local buttonShadow = Instance.new("ImageLabel")
+    buttonShadow.Name = "Shadow"
+    buttonShadow.Size = UDim2.new(1, 8, 1, 8)
+    buttonShadow.Position = UDim2.new(0, -4, 0, -4)
+    buttonShadow.BackgroundTransparency = 1
+    buttonShadow.Image = "rbxassetid://1316045217"
+    buttonShadow.ImageColor3 = getDarkerColor(color, 0.4)
+    buttonShadow.ImageTransparency = 0.6
+    buttonShadow.ScaleType = Enum.ScaleType.Slice
+    buttonShadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    buttonShadow.Parent = button
+    
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 12)
+    buttonCorner.Parent = button
+    
+    return button
 end
 
-local function addGradient(parent, color1, color2, rotation)
-	local gradient = Instance.new("UIGradient")
-	gradient.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, color1),
-		ColorSequenceKeypoint.new(1, color2 or color1)
-	})
-	gradient.Rotation = rotation or 45
-	gradient.Parent = parent
-	return gradient
+-- Создаем 4 тестовые кнопки с разными цветами
+local Button1 = createStyledButton("Button1", "BUTTON 1", Color3.fromRGB(220, 70, 70))    -- Красная
+local Button2 = createStyledButton("Button2", "BUTTON 2", Color3.fromRGB(70, 220, 70))    -- Зеленая
+local Button3 = createStyledButton("Button3", "BUTTON 3", Color3.fromRGB(70, 70, 220))    -- Синяя
+local Button4 = createStyledButton("Button4", "BUTTON 4", Color3.fromRGB(220, 220, 70))   -- Желтая
+
+-- Текст внизу
+local CreditLabel = Instance.new("TextLabel")
+CreditLabel.Name = "CreditLabel"
+CreditLabel.Size = UDim2.new(1, -20, 0, 15)
+CreditLabel.Position = UDim2.new(0, 10, 1, -20)
+CreditLabel.BackgroundTransparency = 1
+CreditLabel.Text = ""
+CreditLabel.TextColor3 = Color3.fromRGB(170, 85, 255)
+CreditLabel.Font = Enum.Font.Gotham
+CreditLabel.TextSize = 11
+CreditLabel.TextXAlignment = Enum.TextXAlignment.Right
+
+-- Сборка основного интерфейса
+Shadow.Parent = MainFrame
+UICorner.Parent = MainFrame
+
+HeaderCorner.Parent = Header
+Header.Parent = MainFrame
+Title.Parent = Header
+VersionLabel.Parent = Header
+
+SettingsCorner.Parent = SettingsButton
+SettingsButton.Parent = Header
+
+CloseCorner.Parent = CloseButton
+CloseButton.Parent = Header
+
+ButtonsBackground.Parent = ButtonsPanel
+ButtonsCorner.Parent = ButtonsBackground
+ButtonsLayout.Parent = ButtonsPanel
+
+Button1.Parent = ButtonsPanel
+Button2.Parent = ButtonsPanel
+Button3.Parent = ButtonsPanel
+Button4.Parent = ButtonsPanel
+
+ButtonsPanel.Parent = MainFrame
+CreditLabel.Parent = MainFrame
+
+MainFrame.Parent = ScreenGui
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Настройки (оставляем как в оригинале)
+local SettingsFrame = Instance.new("Frame")
+SettingsFrame.Name = "SettingsFrame"
+SettingsFrame.Size = isMobile and UDim2.new(0, 250, 0, 200) or UDim2.new(0, 300, 0, 250)
+SettingsFrame.Position = UDim2.new(0.5, isMobile and -125 or -150, 0.5, isMobile and -100 or -125)
+SettingsFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+SettingsFrame.BorderSizePixel = 0
+SettingsFrame.Visible = false
+
+local SettingsUICorner = Instance.new("UICorner")
+SettingsUICorner.CornerRadius = UDim.new(0, 16)
+SettingsUICorner.Parent = SettingsFrame
+
+local SettingsHeader = Instance.new("Frame")
+SettingsHeader.Name = "SettingsHeader"
+SettingsHeader.Size = UDim2.new(1, 0, 0, isMobile and 35 or 40)
+SettingsHeader.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+SettingsHeader.BorderSizePixel = 0
+
+local SettingsHeaderCorner = Instance.new("UICorner")
+SettingsHeaderCorner.CornerRadius = UDim.new(0, 16)
+SettingsHeaderCorner.Parent = SettingsHeader
+
+local SettingsTitle = Instance.new("TextLabel")
+SettingsTitle.Name = "SettingsTitle"
+SettingsTitle.Size = UDim2.new(1, -50, 1, 0)
+SettingsTitle.Position = UDim2.new(0, 15, 0, 0)
+SettingsTitle.BackgroundTransparency = 1
+SettingsTitle.Text = "Settings"
+SettingsTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+SettingsTitle.Font = Enum.Font.GothamBold
+SettingsTitle.TextSize = isMobile and 14 or 16
+SettingsTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local SettingsCloseButton = Instance.new("TextButton")
+SettingsCloseButton.Name = "SettingsCloseButton"
+SettingsCloseButton.Size = UDim2.new(0, isMobile and 25 or 30, 0, isMobile and 25 or 30)
+SettingsCloseButton.Position = UDim2.new(1, isMobile and -30 or -35, 0, isMobile and 5 or 5)
+SettingsCloseButton.BackgroundColor3 = Color3.fromRGB(220, 70, 70)
+SettingsCloseButton.Text = "×"
+SettingsCloseButton.TextColor3 = getLighterColor(SettingsCloseButton.BackgroundColor3, 0.5)
+SettingsCloseButton.Font = Enum.Font.GothamBold
+SettingsCloseButton.TextSize = isMobile and 16 or 18
+
+local SettingsCloseCorner = Instance.new("UICorner")
+SettingsCloseCorner.CornerRadius = UDim.new(0, 8)
+SettingsCloseCorner.Parent = SettingsCloseButton
+
+local LanguageLabel = Instance.new("TextLabel")
+LanguageLabel.Name = "LanguageLabel"
+LanguageLabel.Size = UDim2.new(1, -20, 0, isMobile and 20 or 25)
+LanguageLabel.Position = UDim2.new(0, 10, 0, isMobile and 45 or 50)
+LanguageLabel.BackgroundTransparency = 1
+LanguageLabel.Text = "Language:"
+LanguageLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
+LanguageLabel.Font = Enum.Font.Gotham
+LanguageLabel.TextSize = isMobile and 12 or 14
+LanguageLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local EnglishButton = Instance.new("TextButton")
+EnglishButton.Name = "EnglishButton"
+EnglishButton.Size = UDim2.new(0.3, 0, 0, isMobile and 25 or 30)
+EnglishButton.Position = UDim2.new(0, 10, 0, isMobile and 70 or 80)
+EnglishButton.BackgroundColor3 = Color3.fromRGB(80, 100, 220)
+EnglishButton.Text = "English"
+EnglishButton.TextColor3 = getLighterColor(EnglishButton.BackgroundColor3, 0.5)
+EnglishButton.Font = Enum.Font.Gotham
+EnglishButton.TextSize = isMobile and 10 or 12
+
+local RussianButton = Instance.new("TextButton")
+RussianButton.Name = "RussianButton"
+RussianButton.Size = UDim2.new(0.3, 0, 0, isMobile and 25 or 30)
+RussianButton.Position = UDim2.new(0.35, 0, 0, isMobile and 70 or 80)
+RussianButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+RussianButton.Text = "Русский"
+RussianButton.TextColor3 = getLighterColor(RussianButton.BackgroundColor3, 0.5)
+RussianButton.Font = Enum.Font.Gotham
+RussianButton.TextSize = isMobile and 10 or 12
+
+local ArabicButton = Instance.new("TextButton")
+ArabicButton.Name = "ArabicButton"
+ArabicButton.Size = UDim2.new(0.3, 0, 0, isMobile and 25 or 30)
+ArabicButton.Position = UDim2.new(0.7, 0, 0, isMobile and 70 or 80)
+ArabicButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+ArabicButton.Text = "العربية"
+ArabicButton.TextColor3 = getLighterColor(ArabicButton.BackgroundColor3, 0.5)
+ArabicButton.Font = Enum.Font.Gotham
+ArabicButton.TextSize = isMobile and 10 or 12
+
+local TransparencyLabel = Instance.new("TextLabel")
+TransparencyLabel.Name = "TransparencyLabel"
+TransparencyLabel.Size = UDim2.new(1, -20, 0, isMobile and 20 or 25)
+TransparencyLabel.Position = UDim2.new(0, 10, 0, isMobile and 105 or 120)
+TransparencyLabel.BackgroundTransparency = 1
+TransparencyLabel.Text = "Transparency:"
+TransparencyLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
+TransparencyLabel.Font = Enum.Font.Gotham
+TransparencyLabel.TextSize = isMobile and 12 or 14
+TransparencyLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local TransparencySlider = Instance.new("Frame")
+TransparencySlider.Name = "TransparencySlider"
+TransparencySlider.Size = UDim2.new(1, -20, 0, isMobile and 16 or 20)
+TransparencySlider.Position = UDim2.new(0, 10, 0, isMobile and 130 or 150)
+TransparencySlider.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+TransparencySlider.BorderSizePixel = 0
+
+local TransparencySliderCorner = Instance.new("UICorner")
+TransparencySliderCorner.CornerRadius = UDim.new(0, 10)
+TransparencySliderCorner.Parent = TransparencySlider
+
+local TransparencyFill = Instance.new("Frame")
+TransparencyFill.Name = "TransparencyFill"
+TransparencyFill.Size = UDim2.new(0, 0, 1, 0)
+TransparencyFill.BackgroundColor3 = Color3.fromRGB(80, 100, 220)
+TransparencyFill.BorderSizePixel = 0
+
+local TransparencyFillCorner = Instance.new("UICorner")
+TransparencyFillCorner.CornerRadius = UDim.new(0, 10)
+TransparencyFillCorner.Parent = TransparencyFill
+
+local TransparencyButton = Instance.new("TextButton")
+TransparencyButton.Name = "TransparencyButton"
+TransparencyButton.Size = UDim2.new(0, isMobile and 16 or 20, 0, isMobile and 16 or 20)
+TransparencyButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TransparencyButton.Text = ""
+TransparencyButton.BorderSizePixel = 0
+
+local TransparencyButtonCorner = Instance.new("UICorner")
+TransparencyButtonCorner.CornerRadius = UDim.new(0, 10)
+TransparencyButtonCorner.Parent = TransparencyButton
+
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 8)
+ButtonCorner.Parent = EnglishButton
+ButtonCorner:Clone().Parent = RussianButton
+ButtonCorner:Clone().Parent = ArabicButton
+
+TransparencyFill.Parent = TransparencySlider
+TransparencyButton.Parent = TransparencySlider
+
+SettingsHeader.Parent = SettingsFrame
+SettingsTitle.Parent = SettingsHeader
+SettingsCloseButton.Parent = SettingsHeader
+LanguageLabel.Parent = SettingsFrame
+EnglishButton.Parent = SettingsFrame
+RussianButton.Parent = SettingsFrame
+ArabicButton.Parent = SettingsFrame
+TransparencyLabel.Parent = SettingsFrame
+TransparencySlider.Parent = SettingsFrame
+SettingsFrame.Parent = ScreenGui
+
+-- Функции для обновления языка
+local function updateLanguage()
+    local lang = languages[currentLanguage]
+    
+    Title.Text = lang.title
+    Button1.Text = lang.button1
+    Button2.Text = lang.button2
+    Button3.Text = lang.button3
+    Button4.Text = lang.button4
+    SettingsTitle.Text = lang.settings
+    LanguageLabel.Text = lang.settings .. ":"
+    TransparencyLabel.Text = lang.transparency .. ":"
 end
 
-local function addCorner(parent, radius)
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, radius or 8)
-	corner.Parent = parent
-	return corner
+local function setLanguage(lang)
+    currentLanguage = lang
+    updateLanguage()
+    
+    EnglishButton.BackgroundColor3 = lang == "English" and Color3.fromRGB(80, 100, 220) or Color3.fromRGB(60, 60, 80)
+    RussianButton.BackgroundColor3 = lang == "Russian" and Color3.fromRGB(80, 100, 220) or Color3.fromRGB(60, 60, 80)
+    ArabicButton.BackgroundColor3 = lang == "Arabic" and Color3.fromRGB(80, 100, 220) or Color3.fromRGB(60, 60, 80)
+    
+    EnglishButton.TextColor3 = getLighterColor(EnglishButton.BackgroundColor3, 0.5)
+    RussianButton.TextColor3 = getLighterColor(RussianButton.BackgroundColor3, 0.5)
+    ArabicButton.TextColor3 = getLighterColor(ArabicButton.BackgroundColor3, 0.5)
 end
 
-local function addShadow(parent, size, transparency)
-	local shadow = Instance.new("ImageLabel")
-	shadow.Name = "Shadow"
-	shadow.Size = UDim2.new(1, size or 15, 1, size or 15)
-	shadow.Position = UDim2.new(0, -(size or 15)/2, 0, -(size or 15)/2)
-	shadow.BackgroundTransparency = 1
-	shadow.Image = "rbxassetid://1316045217"
-	shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-	shadow.ImageTransparency = transparency or 0.9
-	shadow.ScaleType = Enum.ScaleType.Slice
-	shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-	shadow.Parent = parent
-	return shadow
+-- Функции для прозрачности
+local function updateTransparency()
+    local transparencyValue = currentTransparency / 100
+    MainFrame.BackgroundTransparency = transparencyValue
+    Shadow.ImageTransparency = 0.9 + transparencyValue * 0.1
+    ButtonsBackground.BackgroundTransparency = transparencyValue
 end
 
-function YUUGTRL:CreateWindow(options)
-	showWatermark()
-	
-	options = options or {}
-	
-	local window = {
-		Title = options.title or "YUUGTRL Window",
-		Size = options.size or {width = 350, height = 400},
-		Position = options.position or {x = 0.5, y = 0.5},
-		Draggable = options.draggable ~= false,
-		Visible = true,
-		Elements = {},
-		ScreenGui = nil,
-		MainFrame = nil,
-		Header = nil,
-		Content = nil,
-		CloseCallbacks = {}
-	}
-	
-	window.ScreenGui = Instance.new("ScreenGui")
-	window.ScreenGui.Name = "YUUGTRL_" .. options.title:gsub("%s+", "")
-	window.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	window.ScreenGui.DisplayOrder = 999
-	window.ScreenGui.ResetOnSpawn = false
-	
-	window.MainFrame = Instance.new("Frame")
-	window.MainFrame.Name = "MainFrame"
-	window.MainFrame.Size = isMobile and 
-		UDim2.new(0, window.Size.width - 70, 0, window.Size.height - 80) or 
-		UDim2.new(0, window.Size.width, 0, window.Size.height)
-	window.MainFrame.Position = UDim2.new(window.Position.x, isMobile and -140 or -175, window.Position.y, -window.Size.height/2)
-	window.MainFrame.BackgroundColor3 = colors.background
-	window.MainFrame.BorderSizePixel = 0
-	
-	addGradient(window.MainFrame, colors.backgroundLight, colors.background, 45)
-	addShadow(window.MainFrame, 15, 0.9)
-	addCorner(window.MainFrame, 16)
-	
-	window.Header = Instance.new("Frame")
-	window.Header.Name = "Header"
-	window.Header.Size = UDim2.new(1, 0, 0, isMobile and 35 or 45)
-	window.Header.BackgroundColor3 = colors.backgroundLight
-	window.Header.BorderSizePixel = 0
-	
-	addGradient(window.Header, lightenColor(colors.backgroundLight, 0.2), colors.backgroundLight, 90)
-	addCorner(window.Header, 16)
-	
-	local title = Instance.new("TextLabel")
-	title.Name = "Title"
-	title.Size = UDim2.new(1, -60, 1, 0)
-	title.Position = UDim2.new(0, 12, 0, 0)
-	title.BackgroundTransparency = 1
-	title.Text = window.Title
-	title.TextColor3 = colors.text
-	title.Font = Enum.Font.GothamBold
-	title.TextSize = isMobile and 14 or 18
-	title.TextXAlignment = Enum.TextXAlignment.Left
-	title.Parent = window.Header
-	
-	if options.showCredits ~= false then
-		local credit = Instance.new("TextLabel")
-		credit.Name = "Credit"
-		credit.Size = UDim2.new(1, -60, 0, isMobile and 12 or 14)
-		credit.Position = UDim2.new(0, 12, 1, isMobile and -14 or -16)
-		credit.BackgroundTransparency = 1
-		credit.Text = "YUUGTRL Library v1.0"
-		credit.TextColor3 = colors.info
-		credit.Font = Enum.Font.Gotham
-		credit.TextSize = isMobile and 9 or 11
-		credit.TextXAlignment = Enum.TextXAlignment.Left
-		credit.Parent = window.Header
-	end
-	
-	local closeBtn = Instance.new("TextButton")
-	closeBtn.Name = "CloseButton"
-	closeBtn.Size = UDim2.new(0, isMobile and 26 or 32, 0, isMobile and 26 or 32)
-	closeBtn.Position = UDim2.new(1, isMobile and -30 or -37, 0, isMobile and 4 or 6)
-	closeBtn.BackgroundColor3 = colors.danger
-	closeBtn.Text = "×"
-	closeBtn.TextColor3 = colors.text
-	closeBtn.Font = Enum.Font.GothamBold
-	closeBtn.TextSize = isMobile and 16 or 20
-	
-	addGradient(closeBtn, lightenColor(colors.danger, 0.2), darkenColor(colors.danger, 0.2), 90)
-	addCorner(closeBtn, 8)
-	
-	closeBtn.MouseButton1Click:Connect(function()
-		window:Close()
-		for _, callback in ipairs(window.CloseCallbacks) do
-			callback()
-		end
-	end)
-	
-	closeBtn.Parent = window.Header
-	
-	window.Content = Instance.new("Frame")
-	window.Content.Name = "Content"
-	window.Content.Size = UDim2.new(1, -20, 1, -(isMobile and 65 or 75))
-	window.Content.Position = UDim2.new(0, 10, 0, isMobile and 45 or 55)
-	window.Content.BackgroundTransparency = 1
-	window.Content.Parent = window.MainFrame
-	
-	window.Header.Parent = window.MainFrame
-	window.MainFrame.Parent = window.ScreenGui
-	window.ScreenGui.Parent = player:WaitForChild("PlayerGui")
-	
-	if window.Draggable then
-		local dragging = false
-		local dragInput, dragStart, startPos
-		
-		local function update(input)
-			local delta = input.Position - dragStart
-			window.MainFrame.Position = UDim2.new(
-				startPos.X.Scale, 
-				startPos.X.Offset + delta.X, 
-				startPos.Y.Scale, 
-				startPos.Y.Offset + delta.Y
-			)
-		end
-		
-		window.Header.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-				dragging = true
-				dragStart = input.Position
-				startPos = window.MainFrame.Position
-				
-				local connection
-				connection = input.Changed:Connect(function()
-					if input.UserInputState == Enum.UserInputState.End then
-						dragging = false
-						connection:Disconnect()
-					end
-				end)
-			end
-		end)
-		
-		window.Header.InputChanged:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-				dragInput = input
-			end
-		end)
-		
-		UserInputService.InputChanged:Connect(function(input)
-			if input == dragInput and dragging then
-				update(input)
-			end
-		end)
-	end
-	
-	function window:SetTitle(newTitle)
-		title.Text = newTitle
-		window.Title = newTitle
-	end
-	
-	function window:SetVisible(visible)
-		window.Visible = visible
-		window.MainFrame.Visible = visible
-	end
-	
-	function window:Toggle()
-		window:SetVisible(not window.Visible)
-	end
-	
-	function window:Close()
-		window.ScreenGui:Destroy()
-	end
-	
-	function window:OnClose(callback)
-		table.insert(window.CloseCallbacks, callback)
-	end
-	
-	function window:CreateSection(name)
-		local section = {
-			Name = name,
-			Parent = window,
-			Frame = nil,
-			Elements = {}
-		}
-		
-		local container = Instance.new("ScrollingFrame")
-		container.Size = UDim2.new(1, 0, 1, 0)
-		container.BackgroundTransparency = 1
-		container.BorderSizePixel = 0
-		container.ScrollBarThickness = 4
-		container.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 130)
-		container.Parent = window.Content
-		
-		local layout = Instance.new("UIListLayout")
-		layout.Padding = UDim.new(0, isMobile and 4 or 6)
-		layout.Parent = container
-		
-		if name then
-			local header = Instance.new("TextLabel")
-			header.Size = UDim2.new(1, 0, 0, isMobile and 20 or 25)
-			header.BackgroundTransparency = 1
-			header.Text = name
-			header.TextColor3 = colors.text
-			header.Font = Enum.Font.GothamBold
-			header.TextSize = isMobile and 12 or 14
-			header.TextXAlignment = Enum.TextXAlignment.Left
-			header.Parent = container
-			
-			local line = Instance.new("Frame")
-			line.Size = UDim2.new(1, 0, 0, 1)
-			line.Position = UDim2.new(0, 0, 1, -2)
-			line.BackgroundColor3 = colors.accent
-			line.BorderSizePixel = 0
-			line.Parent = header
-		end
-		
-		section.Frame = container
-		
-		function section:AddButton(text, callback, color)
-			local btn = YUUGTRL:CreateButton(text, callback, color)
-			btn.Parent = container
-			table.insert(section.Elements, btn)
-			return btn
-		end
-		
-		function section:AddToggle(text, defaultValue, callback)
-			local toggle, label, value = YUUGTRL:CreateToggle(text, defaultValue, callback)
-			toggle.Parent = container
-			table.insert(section.Elements, toggle)
-			return toggle, label, value
-		end
-		
-		function section:AddLabel(text, isTitle)
-			local label = YUUGTRL:CreateLabel(text, isTitle)
-			label.Parent = container
-			table.insert(section.Elements, label)
-			return label
-		end
-		
-		function section:AddSlider(text, min, max, default, callback)
-			local slider = YUUGTRL:CreateSlider(text, min, max, default, callback)
-			slider.Parent = container
-			table.insert(section.Elements, slider)
-			return slider
-		end
-		
-		table.insert(window.Elements, section)
-		return section
-	end
-	
-	return window
+local function setTransparency(value)
+    currentTransparency = math.clamp(value, 0, 100)
+    updateTransparency()
+    
+    local fillWidth = (TransparencySlider.AbsoluteSize.X * currentTransparency) / 100
+    TransparencyFill.Size = UDim2.new(0, fillWidth, 1, 0)
+    TransparencyButton.Position = UDim2.new(currentTransparency / 100, -10, 0, 0)
 end
 
-function YUUGTRL:CreateButton(text, callback, color)
-	local buttonColor = color or colors.accent
-	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(1, 0, 0, isMobile and 30 or 35)
-	button.BackgroundColor3 = buttonColor
-	button.Text = text
-	button.TextColor3 = colors.text
-	button.Font = Enum.Font.GothamBold
-	button.TextSize = isMobile and 11 or 13
-	button.AutoButtonColor = false
-	
-	addGradient(button, lightenColor(buttonColor, 0.15), darkenColor(buttonColor, 0.2), 90)
-	addCorner(button, 10)
-	
-	button.MouseEnter:Connect(function()
-		createTween(button:FindFirstChildOfClass("UIGradient"), {
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, lightenColor(buttonColor, 0.25)),
-				ColorSequenceKeypoint.new(1, darkenColor(buttonColor, 0.1))
-			})
-		}):Play()
-	end)
-	
-	button.MouseLeave:Connect(function()
-		createTween(button:FindFirstChildOfClass("UIGradient"), {
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, lightenColor(buttonColor, 0.15)),
-				ColorSequenceKeypoint.new(1, darkenColor(buttonColor, 0.2))
-			})
-		}):Play()
-	end)
-	
-	button.MouseButton1Click:Connect(function()
-		local gradient = button:FindFirstChildOfClass("UIGradient")
-		createTween(gradient, {
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, lightenColor(colors.success, 0.15)),
-				ColorSequenceKeypoint.new(1, darkenColor(colors.success, 0.2))
-			})
-		}):Play()
-		task.wait(0.1)
-		createTween(gradient, {
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, lightenColor(buttonColor, 0.15)),
-				ColorSequenceKeypoint.new(1, darkenColor(buttonColor, 0.2))
-			})
-		}):Play()
-		if callback then callback(button) end
-	end)
-	
-	return button
+-- Функция анимации кнопок
+local function animateButton(button)
+    local originalColor = button.BackgroundColor3
+    local lighterColor = getLighterColor(originalColor, 0.3)
+    local darkerColor = getDarkerColor(originalColor, 0.2)
+    
+    -- Анимация нажатия
+    local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(button, tweenInfo, {BackgroundColor3 = darkerColor})
+    tween:Play()
+    
+    tween.Completed:Connect(function()
+        local tweenBack = TweenService:Create(button, tweenInfo, {BackgroundColor3 = originalColor})
+        tweenBack:Play()
+    end)
+    
+    -- Обновляем тень
+    local shadow = button:FindFirstChild("Shadow")
+    if shadow then
+        shadow.ImageColor3 = getDarkerColor(darkerColor, 0.2)
+    end
 end
 
-function YUUGTRL:CreateToggle(text, defaultValue, callback)
-	local frame = Instance.new("Frame")
-	frame.Size = UDim2.new(1, 0, 0, isMobile and 25 or 30)
-	frame.BackgroundTransparency = 1
-	
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(0.5, 0, 1, 0)
-	label.BackgroundTransparency = 1
-	label.Text = text .. ":"
-	label.TextColor3 = colors.textDim
-	label.Font = Enum.Font.Gotham
-	label.TextSize = isMobile and 12 or 14
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.Parent = frame
-	
-	local value = Instance.new("TextLabel")
-	value.Size = UDim2.new(0.45, 0, 1, 0)
-	value.Position = UDim2.new(0.55, 0, 0, 0)
-	value.BackgroundTransparency = 1
-	value.Text = tostring(defaultValue or false)
-	value.TextColor3 = (defaultValue or false) and colors.success or colors.danger
-	value.Font = Enum.Font.GothamBold
-	value.TextSize = isMobile and 12 or 14
-	value.TextXAlignment = Enum.TextXAlignment.Left
-	value.Parent = frame
-	
-	local enabled = defaultValue or false
-	
-	local function updateDisplay()
-		value.Text = tostring(enabled)
-		createTween(value, {TextColor3 = enabled and colors.success or colors.danger}):Play()
-	end
-	
-	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(1, 0, 1, 0)
-	button.BackgroundTransparency = 1
-	button.Text = ""
-	button.Parent = frame
-	
-	button.MouseButton1Click:Connect(function()
-		enabled = not enabled
-		updateDisplay()
-		if callback then callback(enabled) end
-	end)
-	
-	updateDisplay()
-	
-	return frame, label, value
+-- Функция переключения видимости
+local function toggleScriptVisibility()
+    scriptVisible = not scriptVisible
+    MainFrame.Visible = scriptVisible
 end
 
-function YUUGTRL:CreateLabel(text, isTitle)
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, 0, 0, isMobile and (isTitle and 25 or 20) or (isTitle and 30 or 25))
-	label.BackgroundTransparency = 1
-	label.Text = text
-	label.TextColor3 = isTitle and colors.text or colors.textDim
-	label.Font = isTitle and Enum.Font.GothamBold or Enum.Font.Gotham
-	label.TextSize = isMobile and (isTitle and 14 or 12) or (isTitle and 16 or 14)
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.TextWrapped = true
-	
-	if isTitle then
-		local line = Instance.new("Frame")
-		line.Size = UDim2.new(1, 0, 0, 1)
-		line.Position = UDim2.new(0, 0, 1, -2)
-		line.BackgroundColor3 = colors.accent
-		line.BorderSizePixel = 0
-		line.Parent = label
-	end
-	
-	return label
+-- Настройка перетаскивания
+local function setupDragging(frame, header)
+    local dragging = false
+    local dragInput, dragStart, startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+
+    header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            
+            local connection
+            connection = input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                    connection:Disconnect()
+                end
+            end)
+        end
+    end)
+
+    header.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
 end
 
-function YUUGTRL:CreateSlider(text, min, max, default, callback)
-	local frame = Instance.new("Frame")
-	frame.Size = UDim2.new(1, 0, 0, isMobile and 45 or 55)
-	frame.BackgroundTransparency = 1
-	
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(0.5, 0, 0, isMobile and 15 or 18)
-	label.BackgroundTransparency = 1
-	label.Text = text .. ":"
-	label.TextColor3 = colors.textDim
-	label.Font = Enum.Font.Gotham
-	label.TextSize = isMobile and 12 or 14
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.Parent = frame
-	
-	local valueLabel = Instance.new("TextLabel")
-	valueLabel.Size = UDim2.new(0.45, 0, 0, isMobile and 15 or 18)
-	valueLabel.Position = UDim2.new(0.55, 0, 0, 0)
-	valueLabel.BackgroundTransparency = 1
-	valueLabel.Text = tostring(default or min or 0)
-	valueLabel.TextColor3 = colors.text
-	valueLabel.Font = Enum.Font.GothamBold
-	valueLabel.TextSize = isMobile and 12 or 14
-	valueLabel.TextXAlignment = Enum.TextXAlignment.Left
-	valueLabel.Parent = frame
-	
-	local sliderBg = Instance.new("Frame")
-	sliderBg.Size = UDim2.new(1, 0, 0, isMobile and 16 or 20)
-	sliderBg.Position = UDim2.new(0, 0, 0, isMobile and 20 or 25)
-	sliderBg.BackgroundColor3 = colors.backgroundDark
-	sliderBg.BorderSizePixel = 0
-	sliderBg.Parent = frame
-	
-	addGradient(sliderBg, colors.backgroundLight, colors.backgroundDark, 90)
-	addCorner(sliderBg, 10)
-	
-	local sliderFill = Instance.new("Frame")
-	sliderFill.Name = "Fill"
-	sliderFill.Size = UDim2.new(0, 0, 1, 0)
-	sliderFill.BackgroundColor3 = colors.accent
-	sliderFill.BorderSizePixel = 0
-	sliderFill.Parent = sliderBg
-	
-	addGradient(sliderFill, lightenColor(colors.accent, 0.15), darkenColor(colors.accent, 0.2), 90)
-	addCorner(sliderFill, 10)
-	
-	local sliderButton = Instance.new("TextButton")
-	sliderButton.Size = UDim2.new(0, isMobile and 16 or 20, 0, isMobile and 16 or 20)
-	sliderButton.BackgroundColor3 = colors.text
-	sliderButton.Text = ""
-	sliderButton.BorderSizePixel = 0
-	sliderButton.Parent = sliderBg
-	
-	addGradient(sliderButton, colors.text, darkenColor(colors.text, 0.2), 90)
-	addCorner(sliderButton, 10)
-	
-	local minVal = min or 0
-	local maxVal = max or 100
-	local currentVal = default or minVal
-	
-	local function updateSlider(posX)
-		local sliderPos = sliderBg.AbsolutePosition.X
-		local sliderSize = sliderBg.AbsoluteSize.X
-		local relativePos = math.clamp((posX - sliderPos) / sliderSize, 0, 1)
-		currentVal = minVal + (maxVal - minVal) * relativePos
-		
-		local fillWidth = sliderSize * relativePos
-		sliderFill.Size = UDim2.new(0, fillWidth, 1, 0)
-		sliderButton.Position = UDim2.new(relativePos, -10, 0, 0)
-		valueLabel.Text = tostring(math.floor(currentVal))
-		
-		if callback then callback(currentVal) end
-	end
-	
-	local dragging = false
-	
-	sliderButton.MouseButton1Down:Connect(function()
-		dragging = true
-	end)
-	
-	sliderButton.TouchLongPress:Connect(function()
-		dragging = true
-	end)
-	
-	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
-		end
-	end)
-	
-	UserInputService.InputChanged:Connect(function(input)
-		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-			updateSlider(input.Position.X)
-		end
-	end)
-	
-	sliderBg.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			updateSlider(input.Position.X)
-		end
-	end)
-	
-	local initialFillWidth = ((currentVal - minVal) / (maxVal - minVal)) * sliderBg.AbsoluteSize.X
-	sliderFill.Size = UDim2.new(0, initialFillWidth, 1, 0)
-	sliderButton.Position = UDim2.new((currentVal - minVal) / (maxVal - minVal), -10, 0, 0)
-	
-	return frame
-end
+setupDragging(MainFrame, Header)
+setupDragging(SettingsFrame, SettingsHeader)
 
-return YUUGTRL
+-- Настройка ползунка прозрачности
+local transparencyDragging = false
+
+TransparencyButton.MouseButton1Down:Connect(function()
+    transparencyDragging = true
+end)
+
+TransparencyButton.TouchLongPress:Connect(function()
+    transparencyDragging = true
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        transparencyDragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if transparencyDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local mousePos = input.Position.X
+        local sliderPos = TransparencySlider.AbsolutePosition.X
+        local sliderSize = TransparencySlider.AbsoluteSize.X
+        local relativePos = math.clamp((mousePos - sliderPos) / sliderSize, 0, 1)
+        setTransparency(relativePos * 100)
+    end
+end)
+
+-- Обработчики клавиш
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
+        toggleScriptVisibility()
+    end
+end)
+
+-- Обработчики кнопок
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+    script:Destroy()
+end)
+
+SettingsButton.MouseButton1Click:Connect(function()
+    SettingsFrame.Visible = true
+end)
+
+SettingsCloseButton.MouseButton1Click:Connect(function()
+    SettingsFrame.Visible = false
+end)
+
+-- Кнопки смены языка
+EnglishButton.MouseButton1Click:Connect(function()
+    setLanguage("English")
+end)
+
+RussianButton.MouseButton1Click:Connect(function()
+    setLanguage("Russian")
+end)
+
+ArabicButton.MouseButton1Click:Connect(function()
+    setLanguage("Arabic")
+end)
+
+-- Тестовые кнопки
+Button1.MouseButton1Click:Connect(function()
+    animateButton(Button1)
+    print("Button 1 clicked")
+end)
+
+Button2.MouseButton1Click:Connect(function()
+    animateButton(Button2)
+    print("Button 2 clicked")
+end)
+
+Button3.MouseButton1Click:Connect(function()
+    animateButton(Button3)
+    print("Button 3 clicked")
+end)
+
+Button4.MouseButton1Click:Connect(function()
+    animateButton(Button4)
+    print("Button 4 clicked")
+end)
+
+-- Инициализация
+setLanguage("English")
+setTransparency(0)
