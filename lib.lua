@@ -76,25 +76,22 @@ function YUUGTRL:ApplyButtonStyle(button, color)
     return button
 end
 
-function YUUGTRL:SetButtonColor(button, color)
-    self:ApplyButtonStyle(button, color)
-    button.BackgroundColor3 = color
-end
-
 function YUUGTRL:DarkenButton(button)
     if not button:FindFirstChild("UIGradient") then return end
     local gradient = button:FindFirstChild("UIGradient")
     local color = gradient.Color.Keypoints[1].Value
-    local darker = Color3.fromRGB(math.max(color.R * 255 - 70, 0), math.max(color.G * 255 - 70, 0), math.max(color.B * 255 - 70, 0))
+    local darker = Color3.fromRGB(math.max(color.R * 255 - 90, 0), math.max(color.G * 255 - 90, 0), math.max(color.B * 255 - 90, 0))
     gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, darker),ColorSequenceKeypoint.new(1, darker)})
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
 end
 
 function YUUGTRL:LightenButton(button)
     if not button:FindFirstChild("UIGradient") then return end
     local gradient = button:FindFirstChild("UIGradient")
     local color = gradient.Color.Keypoints[1].Value
-    local lighter = Color3.fromRGB(math.min(color.R * 255 + 70, 255), math.min(color.G * 255 + 70, 255), math.min(color.B * 255 + 70, 255))
+    local lighter = Color3.fromRGB(math.min(color.R * 255 + 90, 255), math.min(color.G * 255 + 90, 255), math.min(color.B * 255 + 90, 255))
     gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, lighter),ColorSequenceKeypoint.new(1, lighter)})
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
 end
 
 function YUUGTRL:RestoreButtonStyle(button, color)
@@ -102,6 +99,8 @@ function YUUGTRL:RestoreButtonStyle(button, color)
     local gradient = button:FindFirstChild("UIGradient")
     local darker = Color3.fromRGB(math.max(color.R * 255 - 50, 0), math.max(color.G * 255 - 50, 0), math.max(color.B * 255 - 50, 0))
     gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, color),ColorSequenceKeypoint.new(1, darker)})
+    local brighter = Color3.fromRGB(math.min(color.R * 255 + 100, 255), math.min(color.G * 255 + 100, 255), math.min(color.B * 255 + 100, 255))
+    button.TextColor3 = brighter
 end
 
 function YUUGTRL:MakeButton(button, color, style)
@@ -112,13 +111,29 @@ function YUUGTRL:MakeButton(button, color, style)
     self:ApplyButtonStyle(button, btnColor)
     
     if btnStyle == "darken" then
-        button.MouseButton1Down:Connect(function() YUUGTRL:DarkenButton(button) end)
-        button.MouseButton1Up:Connect(function() YUUGTRL:RestoreButtonStyle(button, btnColor) end)
-        button.MouseLeave:Connect(function() if not toggled then YUUGTRL:RestoreButtonStyle(button, btnColor) end end)
+        button.MouseButton1Down:Connect(function() 
+            YUUGTRL:DarkenButton(button) 
+        end)
+        button.MouseButton1Up:Connect(function() 
+            YUUGTRL:RestoreButtonStyle(button, btnColor) 
+        end)
+        button.MouseLeave:Connect(function() 
+            if not toggled then 
+                YUUGTRL:RestoreButtonStyle(button, btnColor) 
+            end 
+        end)
     elseif btnStyle == "lighten" then
-        button.MouseButton1Down:Connect(function() YUUGTRL:LightenButton(button) end)
-        button.MouseButton1Up:Connect(function() YUUGTRL:RestoreButtonStyle(button, btnColor) end)
-        button.MouseLeave:Connect(function() if not toggled then YUUGTRL:RestoreButtonStyle(button, btnColor) end end)
+        button.MouseButton1Down:Connect(function() 
+            YUUGTRL:LightenButton(button) 
+        end)
+        button.MouseButton1Up:Connect(function() 
+            YUUGTRL:RestoreButtonStyle(button, btnColor) 
+        end)
+        button.MouseLeave:Connect(function() 
+            if not toggled then 
+                YUUGTRL:RestoreButtonStyle(button, btnColor) 
+            end 
+        end)
     elseif btnStyle == "toggle" then
         button.MouseButton1Click:Connect(function()
             toggled = not toggled
@@ -129,21 +144,19 @@ function YUUGTRL:MakeButton(button, color, style)
             end
         end)
     elseif btnStyle == "hover" then
-        button.MouseEnter:Connect(function() YUUGTRL:LightenButton(button) end)
-        button.MouseLeave:Connect(function() YUUGTRL:RestoreButtonStyle(button, btnColor) end)
+        button.MouseEnter:Connect(function() 
+            YUUGTRL:LightenButton(button) 
+        end)
+        button.MouseLeave:Connect(function() 
+            YUUGTRL:RestoreButtonStyle(button, btnColor) 
+        end)
     elseif btnStyle == "hover-dark" then
-        button.MouseEnter:Connect(function() YUUGTRL:DarkenButton(button) end)
-        button.MouseLeave:Connect(function() YUUGTRL:RestoreButtonStyle(button, btnColor) end)
-    elseif btnStyle == "roblox-default" then
-        button.Style = Enum.ButtonStyle.RobloxButtonDefault
-    elseif btnStyle == "roblox-button" then
-        button.Style = Enum.ButtonStyle.RobloxButton
-    elseif btnStyle == "roblox-round" then
-        button.Style = Enum.ButtonStyle.RobloxRoundButton
-    elseif btnStyle == "roblox-round-default" then
-        button.Style = Enum.ButtonStyle.RobloxRoundDefaultButton
-    elseif btnStyle == "roblox-round-dropdown" then
-        button.Style = Enum.ButtonStyle.RobloxRoundDropdownButton
+        button.MouseEnter:Connect(function() 
+            YUUGTRL:DarkenButton(button) 
+        end)
+        button.MouseLeave:Connect(function() 
+            YUUGTRL:RestoreButtonStyle(button, btnColor) 
+        end)
     end
     
     return button
@@ -181,11 +194,13 @@ function YUUGTRL:CreateWindow(title, size, position)
     
     local Title = self:CreateLabel(Header, title or "YUUGTRL", UDim2.new(0, 15, 0, 0), UDim2.new(1, -100, 1, 0))
     Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 18
     
-    local Close = self:CreateButton(Header, "X", nil, Color3.fromRGB(255, 50, 50), UDim2.new(1, -70, 0, 5), UDim2.new(0, 30, 0, 30), "darken")
+    local Close = self:CreateButton(Header, "X", nil, Color3.fromRGB(255, 80, 80), UDim2.new(1, -70, 0, 5), UDim2.new(0, 30, 0, 30), "darken")
     Close.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
     
-    local CustomBtn = self:CreateButton(Header, "...", nil, Color3.fromRGB(80, 100, 220), UDim2.new(1, -35, 0, 5), UDim2.new(0, 30, 0, 30), "hover")
+    local CustomBtn = self:CreateButton(Header, "...", nil, Color3.fromRGB(100, 120, 255), UDim2.new(1, -35, 0, 5), UDim2.new(0, 30, 0, 30), "hover")
     
     ScreenGui.Parent = player:WaitForChild("PlayerGui")
     
