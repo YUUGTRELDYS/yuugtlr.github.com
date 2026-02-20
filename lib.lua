@@ -133,20 +133,6 @@ function YUUGTRL:MakeButton(button, color, style)
                 self:RestoreButtonStyle(button, btnColor)
             end
         end)
-    elseif btnStyle == "hover" then
-        button.MouseEnter:Connect(function() 
-            self:LightenButton(button) 
-        end)
-        button.MouseLeave:Connect(function() 
-            self:RestoreButtonStyle(button, btnColor) 
-        end)
-    elseif btnStyle == "hover-dark" then
-        button.MouseEnter:Connect(function() 
-            self:DarkenButton(button) 
-        end)
-        button.MouseLeave:Connect(function() 
-            self:RestoreButtonStyle(button, btnColor) 
-        end)
     end
     
     return button
@@ -170,7 +156,7 @@ function YUUGTRL:CreateWindow(title, size, position)
         Parent = ScreenGui
     })
     
-    Create({type = "UICorner",CornerRadius = UDim.new(0, 8),Parent = Main})
+    Create({type = "UICorner",CornerRadius = UDim.new(0, 12),Parent = Main})
     
     local Header = Create({
         type = "Frame",
@@ -180,7 +166,7 @@ function YUUGTRL:CreateWindow(title, size, position)
         Parent = Main
     })
     
-    Create({type = "UICorner",CornerRadius = UDim.new(0, 8),Parent = Header})
+    Create({type = "UICorner",CornerRadius = UDim.new(0, 12),Parent = Header})
     
     local Title = self:CreateLabel(Header, title or "YUUGTRL", UDim2.new(0, 15, 0, 0), UDim2.new(1, -120, 1, 0))
     Title.TextXAlignment = Enum.TextXAlignment.Left
@@ -231,12 +217,6 @@ function YUUGTRL:CreateWindow(title, size, position)
         SettingsBtn = SettingsBtn
     }
     
-    function window:AddToHeader(instance, position, size)
-        instance.Parent = Header
-        if position then instance.Position = position end
-        if size then instance.Size = size end
-    end
-    
     function window:AddToMain(instance, position, size)
         instance.Parent = Main
         if position then instance.Position = position end
@@ -250,37 +230,19 @@ function YUUGTRL:CreateWindow(title, size, position)
     return window
 end
 
-function YUUGTRL:CreateMonitor(parent, items, position, size)
-    local frame = self:CreateFrame(parent, size or UDim2.new(1, -20, 0, #items * 28 + 10), position or UDim2.new(0, 10, 0, 10), Color3.fromRGB(35, 35, 45))
-    Create({type = "UICorner",CornerRadius = UDim.new(0, 8),Parent = frame})
-    
-    local y = 5
-    local labels = {}
-    
-    for i, item in pairs(items) do
-        local label = self:CreateLabel(frame, item.name .. ": " .. tostring(item.getValue()), UDim2.new(0, 10, 0, y), UDim2.new(1, -20, 0, 25))
-        table.insert(labels, {label = label, getName = item.name, getValue = item.getValue})
-        y = y + 28
-    end
-    
-    function frame:Update()
-        for _, item in pairs(labels) do
-            item.label.Text = item.getName .. ": " .. tostring(item.getValue())
-        end
-    end
-    
-    return frame
-end
-
-function YUUGTRL:CreateFrame(parent, size, position, color)
-    return Create({
+function YUUGTRL:CreateFrame(parent, size, position, color, radius)
+    local frame = Create({
         type = "Frame",
         Size = size or UDim2.new(0, 100, 0, 100),
         Position = position or UDim2.new(0, 0, 0, 0),
-        BackgroundColor3 = color or Color3.fromRGB(40, 40, 50),
+        BackgroundColor3 = color or Color3.fromRGB(35, 35, 45),
         BorderSizePixel = 0,
         Parent = parent
     })
+    
+    Create({type = "UICorner",CornerRadius = UDim.new(0, radius or 12),Parent = frame})
+    
+    return frame
 end
 
 function YUUGTRL:CreateLabel(parent, text, position, size, color)
@@ -293,6 +255,7 @@ function YUUGTRL:CreateLabel(parent, text, position, size, color)
         TextColor3 = color or Color3.fromRGB(255, 255, 255),
         Font = Enum.Font.GothamBold,
         TextSize = 14,
+        TextXAlignment = Enum.TextXAlignment.Left,
         Parent = parent
     })
 end
@@ -310,7 +273,7 @@ function YUUGTRL:CreateButton(parent, text, callback, color, position, size, sty
         Parent = parent
     })
     
-    Create({type = "UICorner",CornerRadius = UDim.new(0, 6),Parent = btn})
+    Create({type = "UICorner",CornerRadius = UDim.new(0, 8),Parent = btn})
     self:MakeButton(btn, color, style)
     
     if callback then
@@ -323,19 +286,13 @@ function YUUGTRL:CreateButton(parent, text, callback, color, position, size, sty
     return btn
 end
 
-function YUUGTRL:CreateToggle(parent, text, default, callback, color, position, size, style)
-    local frame = self:CreateFrame(parent, size or UDim2.new(0, 200, 0, 35), position, Color3.fromRGB(60, 60, 70))
-    Create({type = "UICorner",CornerRadius = UDim.new(0, 6),Parent = frame})
-    
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 100, 120)),ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 60, 70))})
-    gradient.Rotation = 90
-    gradient.Parent = frame
+function YUUGTRL:CreateToggle(parent, text, default, callback, color, position, size)
+    local frame = self:CreateFrame(parent, size or UDim2.new(0, 200, 0, 35), position, Color3.fromRGB(45, 45, 55), 8)
     
     self:CreateLabel(frame, text, UDim2.new(0, 10, 0, 0), UDim2.new(1, -50, 1, 0))
     
     local toggleColor = default and Color3.fromRGB(80, 220, 100) or Color3.fromRGB(220, 80, 80)
-    local toggleBtn = self:CreateButton(frame, "", nil, toggleColor, UDim2.new(1, -40, 0, 2.5), UDim2.new(0, 30, 0, 30), style or "toggle")
+    local toggleBtn = self:CreateButton(frame, "", nil, toggleColor, UDim2.new(1, -40, 0, 2.5), UDim2.new(0, 30, 0, 30), "toggle")
     Create({type = "UICorner",CornerRadius = UDim.new(0, 15),Parent = toggleBtn})
     
     local toggled = default or false
@@ -346,8 +303,7 @@ function YUUGTRL:CreateToggle(parent, text, default, callback, color, position, 
         toggleBtn.BackgroundColor3 = newColor
         self:ApplyButtonStyle(toggleBtn, newColor)
         if callback then
-            local success, err = pcall(callback, toggled)
-            if not success then warn(err) end
+            callback(toggled)
         end
     end)
     
@@ -355,24 +311,16 @@ function YUUGTRL:CreateToggle(parent, text, default, callback, color, position, 
 end
 
 function YUUGTRL:CreateSlider(parent, text, min, max, default, callback, position, size)
-    local frame = self:CreateFrame(parent, size or UDim2.new(0, 200, 0, 50), position, Color3.fromRGB(60, 60, 70))
-    Create({type = "UICorner",CornerRadius = UDim.new(0, 6),Parent = frame})
+    local frame = self:CreateFrame(parent, size or UDim2.new(0, 200, 0, 50), position, Color3.fromRGB(45, 45, 55), 8)
     
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 100, 120)),ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 60, 70))})
-    gradient.Rotation = 90
-    gradient.Parent = frame
-    
-    self:CreateLabel(frame, text, UDim2.new(0, 10, 0, 5), UDim2.new(1, -20, 0, 20))
+    self:CreateLabel(frame, text or "", UDim2.new(0, 10, 0, 5), UDim2.new(1, -60, 0, 20))
     
     local valueLabel = self:CreateLabel(frame, tostring(default or 0), UDim2.new(1, -50, 0, 5), UDim2.new(0, 40, 0, 20))
+    valueLabel.TextXAlignment = Enum.TextXAlignment.Right
     
-    local slider = self:CreateFrame(frame, UDim2.new(1, -30, 0, 10), UDim2.new(0, 15, 0, 30), Color3.fromRGB(40, 40, 50))
-    Create({type = "UICorner",CornerRadius = UDim.new(0, 5),Parent = slider})
+    local slider = self:CreateFrame(frame, UDim2.new(1, -20, 0, 8), UDim2.new(0, 10, 0, 30), Color3.fromRGB(60, 60, 70), 4)
     
-    local fill = self:CreateFrame(slider, UDim2.new((default or 0) / max, 0, 1, 0), UDim2.new(0, 0, 0, 0), Color3.fromRGB(80, 100, 220))
-    Create({type = "UICorner",CornerRadius = UDim.new(0, 5),Parent = fill})
-    self:ApplyButtonStyle(fill, Color3.fromRGB(80, 100, 220))
+    local fill = self:CreateFrame(slider, UDim2.new((default or 0) / max, 0, 1, 0), UDim2.new(0, 0, 0, 0), Color3.fromRGB(80, 100, 220), 4)
     
     local dragging = false
     
@@ -396,10 +344,7 @@ function YUUGTRL:CreateSlider(parent, text, min, max, default, callback, positio
             local value = math.floor(min + (max - min) * percent)
             fill.Size = UDim2.new(percent, 0, 1, 0)
             valueLabel.Text = tostring(value)
-            if callback then
-                local success, err = pcall(callback, value)
-                if not success then warn(err) end
-            end
+            if callback then callback(value) end
         end
     end)
     
