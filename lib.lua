@@ -117,22 +117,12 @@ function YUUGTRL:MakeButton(button, color, style)
         button.MouseButton1Up:Connect(function() 
             self:RestoreButtonStyle(button, btnColor) 
         end)
-        button.MouseLeave:Connect(function() 
-            if not toggled then 
-                self:RestoreButtonStyle(button, btnColor) 
-            end 
-        end)
     elseif btnStyle == "lighten" then
         button.MouseButton1Down:Connect(function() 
             self:LightenButton(button) 
         end)
         button.MouseButton1Up:Connect(function() 
             self:RestoreButtonStyle(button, btnColor) 
-        end)
-        button.MouseLeave:Connect(function() 
-            if not toggled then 
-                self:RestoreButtonStyle(button, btnColor) 
-            end 
         end)
     elseif btnStyle == "toggle" then
         button.MouseButton1Click:Connect(function()
@@ -142,6 +132,20 @@ function YUUGTRL:MakeButton(button, color, style)
             else
                 self:RestoreButtonStyle(button, btnColor)
             end
+        end)
+    elseif btnStyle == "hover" then
+        button.MouseEnter:Connect(function() 
+            self:LightenButton(button) 
+        end)
+        button.MouseLeave:Connect(function() 
+            self:RestoreButtonStyle(button, btnColor) 
+        end)
+    elseif btnStyle == "hover-dark" then
+        button.MouseEnter:Connect(function() 
+            self:DarkenButton(button) 
+        end)
+        button.MouseLeave:Connect(function() 
+            self:RestoreButtonStyle(button, btnColor) 
         end)
     end
     
