@@ -64,7 +64,7 @@ local function showLoadMessage()
     versionText.Size = UDim2.new(0, 50, 1, 0)
     versionText.Position = UDim2.new(1, -60, 0, 0)
     versionText.BackgroundTransparency = 1
-    versionText.Text = "v2.0"
+    versionText.Text = "v3.0"
     versionText.TextColor3 = Color3.fromRGB(80, 100, 220)
     versionText.Font = Enum.Font.GothamBold
     versionText.TextSize = isMobile and 10 or 12
@@ -504,6 +504,245 @@ function YUUGTRL:CreateWindow(title, size)
         credit.TextXAlignment = Enum.TextXAlignment.Right
         credit.Parent = self.MainFrame
         return credit
+    end
+    
+    function windowObj:CreateDropdown(text, options, callback)
+        local frame = Instance.new("Frame")
+        frame.Name = text .. "Dropdown"
+        frame.Size = UDim2.new(1, -10, 0, isMobile and 35 or 40)
+        frame.BackgroundTransparency = 1
+        frame.Parent = self.Container
+        
+        local button = Instance.new("TextButton")
+        button.Name = "DropdownButton"
+        button.Size = UDim2.new(1, 0, 1, 0)
+        button.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+        button.Text = text .. " ▼"
+        button.TextColor3 = Color3.fromRGB(200, 200, 255)
+        button.Font = Enum.Font.GothamBold
+        button.TextSize = isMobile and 11 or 13
+        button.Parent = frame
+        
+        createCorner(button, 10)
+        createButtonGradient(button, Color3.fromRGB(45, 45, 55))
+        
+        local dropdownFrame = Instance.new("Frame")
+        dropdownFrame.Name = "DropdownFrame"
+        dropdownFrame.Size = UDim2.new(1, 0, 0, #options * (isMobile and 30 or 35))
+        dropdownFrame.Position = UDim2.new(0, 0, 1, 5)
+        dropdownFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+        dropdownFrame.BorderSizePixel = 0
+        dropdownFrame.Visible = false
+        dropdownFrame.Parent = frame
+        
+        createShadow(dropdownFrame)
+        createCorner(dropdownFrame, 8)
+        
+        local dropdownList = Instance.new("ScrollingFrame")
+        dropdownList.Size = UDim2.new(1, -10, 1, -10)
+        dropdownList.Position = UDim2.new(0, 5, 0, 5)
+        dropdownList.BackgroundTransparency = 1
+        dropdownList.ScrollBarThickness = 2
+        dropdownList.Parent = dropdownFrame
+        
+        local dropdownLayout = Instance.new("UIListLayout")
+        dropdownLayout.Padding = UDim.new(0, 2)
+        dropdownLayout.Parent = dropdownList
+        
+        for _, option in ipairs(options) do
+            local optionButton = Instance.new("TextButton")
+            optionButton.Name = option .. "Option"
+            optionButton.Size = UDim2.new(1, 0, 0, isMobile and 25 or 30)
+            optionButton.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+            optionButton.Text = option
+            optionButton.TextColor3 = Color3.fromRGB(200, 200, 255)
+            optionButton.Font = Enum.Font.GothamBold
+            optionButton.TextSize = isMobile and 10 or 12
+            optionButton.Parent = dropdownList
+            
+            createCorner(optionButton, 6)
+            createButtonGradient(optionButton, Color3.fromRGB(45, 45, 55))
+            
+            optionButton.MouseButton1Click:Connect(function()
+                button.Text = option .. " ▼"
+                dropdownFrame.Visible = false
+                if callback then callback(option) end
+            end)
+        end
+        
+        button.MouseButton1Click:Connect(function()
+            dropdownFrame.Visible = not dropdownFrame.Visible
+        end)
+        
+        table.insert(self.Elements, {frame, dropdownFrame})
+        
+        self.Container.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+        
+        return dropdownFrame
+    end
+    
+    function windowObj:CreateTextBox(text, placeholder, callback)
+        local frame = Instance.new("Frame")
+        frame.Name = text .. "TextBox"
+        frame.Size = UDim2.new(1, -10, 0, isMobile and 35 or 40)
+        frame.BackgroundTransparency = 1
+        frame.Parent = self.Container
+        
+        local label = Instance.new("TextLabel")
+        label.Name = "Label"
+        label.Size = UDim2.new(0.3, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.Text = text
+        label.TextColor3 = Color3.fromRGB(200, 200, 255)
+        label.Font = Enum.Font.GothamBold
+        label.TextSize = isMobile and 11 or 13
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = frame
+        
+        local box = Instance.new("TextBox")
+        box.Name = "TextBox"
+        box.Size = UDim2.new(0.65, 0, 0, isMobile and 25 or 30)
+        box.Position = UDim2.new(0.35, 0, 0.5, -(isMobile and 12.5 or 15))
+        box.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+        box.PlaceholderText = placeholder or ""
+        box.PlaceholderColor3 = Color3.fromRGB(120, 120, 140)
+        box.Text = ""
+        box.TextColor3 = Color3.fromRGB(255, 255, 255)
+        box.Font = Enum.Font.Gotham
+        box.TextSize = isMobile and 10 or 12
+        box.ClearTextOnFocus = false
+        box.Parent = frame
+        
+        createCorner(box, 8)
+        createButtonGradient(box, Color3.fromRGB(45, 45, 55))
+        
+        box.FocusLost:Connect(function(enterPressed)
+            if enterPressed and callback then
+                callback(box.Text)
+            end
+        end)
+        
+        table.insert(self.Elements, {frame, box})
+        
+        self.Container.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+        
+        return box
+    end
+    
+    function windowObj:CreateTab(tabName)
+        local tabFrame = Instance.new("Frame")
+        tabFrame.Name = tabName .. "Tab"
+        tabFrame.Size = UDim2.new(1, 0, 1, 0)
+        tabFrame.BackgroundTransparency = 1
+        tabFrame.Visible = false
+        tabFrame.Parent = self.Container
+        
+        local tabLayout = Instance.new("UIListLayout")
+        tabLayout.Padding = UDim.new(0, isMobile and 4 or 6)
+        tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+        tabLayout.Parent = tabFrame
+        
+        local tabPadding = Instance.new("UIPadding")
+        tabPadding.PaddingTop = UDim.new(0, 5)
+        tabPadding.PaddingBottom = UDim.new(0, 5)
+        tabPadding.Parent = tabFrame
+        
+        local tabObj = {
+            Frame = tabFrame,
+            Layout = tabLayout,
+            Elements = {}
+        }
+        
+        function tabObj:AddButton(text, color, callback)
+            local btn = windowObj:AddButton(text, color, callback)
+            btn.Parent = tabFrame
+            table.insert(self.Elements, btn)
+            return btn
+        end
+        
+        function tabObj:AddToggle(text, default, callback)
+            local tog = windowObj:AddToggle(text, default, callback)
+            tog.Parent = tabFrame
+            table.insert(self.Elements, tog)
+            return tog
+        end
+        
+        function tabObj:AddSlider(text, min, max, default, callback)
+            local slid = windowObj:AddSlider(text, min, max, default, callback)
+            slid.Parent = tabFrame
+            table.insert(self.Elements, slid)
+            return slid
+        end
+        
+        function tabObj:AddLabel(text)
+            local lbl = windowObj:AddLabel(text)
+            lbl.Parent = tabFrame
+            table.insert(self.Elements, lbl)
+            return lbl
+        end
+        
+        table.insert(self.Elements, tabFrame)
+        return tabObj
+    end
+    
+    function windowObj:CreateTabBar(tabs)
+        local barFrame = Instance.new("Frame")
+        barFrame.Name = "TabBar"
+        barFrame.Size = UDim2.new(1, -10, 0, isMobile and 35 or 40)
+        barFrame.BackgroundTransparency = 1
+        barFrame.Parent = self.Container
+        
+        local barLayout = Instance.new("UIListLayout")
+        barLayout.FillDirection = Enum.FillDirection.Horizontal
+        barLayout.Padding = UDim.new(0, 5)
+        barLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+        barLayout.Parent = barFrame
+        
+        local tabObjects = {}
+        local currentTab = nil
+        
+        for i, tabName in ipairs(tabs) do
+            local tabButton = Instance.new("TextButton")
+            tabButton.Name = tabName .. "TabButton"
+            tabButton.Size = UDim2.new(0, (self.Container.AbsoluteSize.X - 30) / #tabs, 0, isMobile and 30 or 35)
+            tabButton.BackgroundColor3 = Color3.fromRGB(80, 100, 220)
+            tabButton.Text = tabName
+            tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            tabButton.Font = Enum.Font.GothamBold
+            tabButton.TextSize = isMobile and 10 or 12
+            tabButton.Parent = barFrame
+            
+            createCorner(tabButton, 8)
+            createButtonGradient(tabButton, Color3.fromRGB(80, 100, 220))
+            
+            local tabContent = self:CreateTab(tabName)
+            tabContent.Frame.Position = UDim2.new(0, 0, 0, barFrame.Size.Y.Offset + 10)
+            
+            if i == 1 then
+                tabContent.Frame.Visible = true
+                tabButton.BackgroundColor3 = Color3.fromRGB(140, 80, 220)
+                currentTab = tabContent
+            end
+            
+            tabButton.MouseButton1Click:Connect(function()
+                if currentTab then
+                    currentTab.Frame.Visible = false
+                end
+                for _, btn in ipairs(barFrame:GetChildren()) do
+                    if btn:IsA("TextButton") then
+                        btn.BackgroundColor3 = Color3.fromRGB(80, 100, 220)
+                    end
+                end
+                tabButton.BackgroundColor3 = Color3.fromRGB(140, 80, 220)
+                tabContent.Frame.Visible = true
+                currentTab = tabContent
+            end)
+            
+            table.insert(tabObjects, {Button = tabButton, Content = tabContent})
+        end
+        
+        table.insert(self.Elements, barFrame)
+        return tabObjects
     end
     
     function windowObj:CreateSettingsFrame()
