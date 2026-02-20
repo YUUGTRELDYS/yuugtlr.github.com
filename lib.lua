@@ -12,6 +12,7 @@ local function showLoadMessage()
     msgGui.ResetOnSpawn = false
     msgGui.Parent = player:WaitForChild("PlayerGui")
     msgGui.IgnoreGuiInset = true
+    msgGui.DisplayOrder = 9999
     
     local msgFrame = Instance.new("Frame")
     msgFrame.Name = "MessageFrame"
@@ -496,7 +497,7 @@ function YUUGTRL:CreateNotification(title, message, duration)
     local notifGui = Instance.new("ScreenGui")
     notifGui.Name = "YUUGTRL_Notification"
     notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    notifGui.DisplayOrder = 1000
+    notifGui.DisplayOrder = 9998
     notifGui.ResetOnSpawn = false
     notifGui.Parent = player:WaitForChild("PlayerGui")
     notifGui.IgnoreGuiInset = true
