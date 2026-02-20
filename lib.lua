@@ -152,7 +152,9 @@ function YUUGTRL:MakeButton(button, color, style)
     return button
 end
 
-function YUUGTRL:CreateWindow(title, size, position, theme)
+function YUUGTRL:CreateWindow(title, size, position, options)
+    options = options or {}
+    
     local ScreenGui = Create({
         type = "ScreenGui",
         Name = "YUUGTRL_" .. title:gsub("%s+", ""),
@@ -162,18 +164,11 @@ function YUUGTRL:CreateWindow(title, size, position, theme)
         Parent = player:WaitForChild("PlayerGui")
     })
     
-    theme = theme or {}
-    local mainColor = theme.MainColor or Color3.fromRGB(30, 30, 40)
-    local headerColor = theme.HeaderColor or Color3.fromRGB(40, 40, 50)
-    local accentColor = theme.AccentColor or Color3.fromRGB(80, 100, 220)
-    local closeColor = theme.CloseColor or Color3.fromRGB(255, 100, 100)
-    local textColor = theme.TextColor or Color3.fromRGB(255, 255, 255)
-    
     local Main = Create({
         type = "Frame",
         Size = size or UDim2.new(0, 350, 0, 450),
         Position = position or UDim2.new(0.5, -175, 0.5, -225),
-        BackgroundColor3 = mainColor,
+        BackgroundColor3 = options.MainColor or Color3.fromRGB(30, 30, 40),
         BorderSizePixel = 0,
         Parent = ScreenGui
     })
@@ -183,21 +178,28 @@ function YUUGTRL:CreateWindow(title, size, position, theme)
     local Header = Create({
         type = "Frame",
         Size = UDim2.new(1, 0, 0, 40),
-        BackgroundColor3 = headerColor,
+        BackgroundColor3 = options.HeaderColor or Color3.fromRGB(40, 40, 50),
         BorderSizePixel = 0,
         Parent = Main
     })
     
     Create({type = "UICorner",CornerRadius = UDim.new(0, 12),Parent = Header})
     
-    local Title = self:CreateLabel(Header, title, UDim2.new(0, 15, 0, 0), UDim2.new(1, -120, 1, 0), textColor)
+    local Title = self:CreateLabel(Header, title, UDim2.new(0, 15, 0, 0), UDim2.new(1, -100, 1, 0), options.TextColor or Color3.fromRGB(255, 255, 255))
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.TextSize = 18
     
-    local SettingsBtn = self:CreateButton(Header, "⚙", nil, accentColor, UDim2.new(1, -70, 0, 5), UDim2.new(0, 30, 0, 30), "darken")
+    local SettingsBtn
+    local CloseBtn
     
-    local Close = self:CreateButton(Header, "X", nil, closeColor, UDim2.new(1, -35, 0, 5), UDim2.new(0, 30, 0, 30), "darken")
-    Close.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+    if options.ShowSettings ~= false then
+        SettingsBtn = self:CreateButton(Header, "⚙", nil, options.AccentColor or Color3.fromRGB(80, 100, 220), UDim2.new(1, -70, 0, 5), UDim2.new(0, 30, 0, 30), "darken")
+    end
+    
+    if options.ShowClose ~= false then
+        CloseBtn = self:CreateButton(Header, "X", nil, options.CloseColor or Color3.fromRGB(255, 100, 100), UDim2.new(1, -35, 0, 5), UDim2.new(0, 30, 0, 30), "darken")
+        CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+    end
     
     local dragging, dragInput, dragStart, startPos
     
@@ -232,9 +234,8 @@ function YUUGTRL:CreateWindow(title, size, position, theme)
         Main = Main,
         Header = Header,
         Title = Title,
-        Close = Close,
         SettingsBtn = SettingsBtn,
-        Theme = theme
+        CloseBtn = CloseBtn
     }
     
     function window:CreateFrame(size, position, color, radius)
@@ -258,7 +259,15 @@ function YUUGTRL:CreateWindow(title, size, position, theme)
     end
     
     function window:SetSettingsCallback(callback)
-        SettingsBtn.MouseButton1Click:Connect(callback)
+        if SettingsBtn then
+            SettingsBtn.MouseButton1Click:Connect(callback)
+        end
+    end
+    
+    function window:SetCloseCallback(callback)
+        if CloseBtn then
+            CloseBtn.MouseButton1Click:Connect(callback)
+        end
     end
     
     function window:Destroy()
