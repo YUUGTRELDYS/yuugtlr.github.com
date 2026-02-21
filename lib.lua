@@ -155,89 +155,97 @@ local function Create(props)
     return obj
 end
 
-function YUUGTRL:ApplyButtonStyle(button, color)
-    if not button then return end
-    for _, v in pairs(button:GetChildren()) do
-        if v:IsA("UIGradient") then
-            v:Destroy()
-        end
-    end
-    local darker = Color3.fromRGB(math.max(color.R * 255 - 50, 0), math.max(color.G * 255 - 50, 0), math.max(color.B * 255 - 50, 0))
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, color),ColorSequenceKeypoint.new(1, darker)})
-    gradient.Rotation = 90
-    gradient.Parent = button
-    local brighter = Color3.fromRGB(math.min(color.R * 255 + 120, 255), math.min(color.G * 255 + 120, 255), math.min(color.B * 255 + 120, 255))
-    button.TextColor3 = brighter
-    button.Font = Enum.Font.GothamBold
-    return button
-end
-
-function YUUGTRL:DarkenButton(button)
-    if not button or not button:FindFirstChild("UIGradient") then return end
-    local gradient = button:FindFirstChild("UIGradient")
-    local color = gradient.Color.Keypoints[1].Value
-    local darker = Color3.fromRGB(math.max(color.R * 255 - 90, 0), math.max(color.G * 255 - 90, 0), math.max(color.B * 255 - 90, 0))
-    gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, darker),ColorSequenceKeypoint.new(1, darker)})
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-end
-
-function YUUGTRL:LightenButton(button)
-    if not button or not button:FindFirstChild("UIGradient") then return end
-    local gradient = button:FindFirstChild("UIGradient")
-    local color = gradient.Color.Keypoints[1].Value
-    local lighter = Color3.fromRGB(math.min(color.R * 255 + 90, 255), math.min(color.G * 255 + 90, 255), math.min(color.B * 255 + 90, 255))
-    gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, lighter),ColorSequenceKeypoint.new(1, lighter)})
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-end
-
-function YUUGTRL:RestoreButtonStyle(button, color)
-    if not button or not button:FindFirstChild("UIGradient") then return end
-    local gradient = button:FindFirstChild("UIGradient")
-    local darker = Color3.fromRGB(math.max(color.R * 255 - 50, 0), math.max(color.G * 255 - 50, 0), math.max(color.B * 255 - 50, 0))
-    local brighter = Color3.fromRGB(math.min(color.R * 255 + 120, 255), math.min(color.G * 255 + 120, 255), math.min(color.B * 255 + 120, 255))
-    gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, color),ColorSequenceKeypoint.new(1, darker)})
-    button.TextColor3 = brighter
-end
-
-function YUUGTRL:MakeButton(button, color, style)
-    if not button then return end
+function YUUGTRL:CreateButton(parent, text, callback, color, position, size, style)
+    if not parent then return end
+    
     local btnColor = color or Color3.fromRGB(60, 100, 200)
-    local btnStyle = style or "darken"
     
-    self:ApplyButtonStyle(button, btnColor)
+    local btn = Create({
+        type = "TextButton",
+        Size = size or UDim2.new(0, 120, 0, 35),
+        Position = position or UDim2.new(0, 0, 0, 0),
+        BackgroundColor3 = btnColor,
+        Text = text or "Button",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        Font = Enum.Font.GothamBold,
+        TextSize = 14,
+        Parent = parent
+    })
     
-    if btnStyle == "darken" then
-        button.MouseButton1Down:Connect(function() 
-            self:DarkenButton(button) 
-        end)
-        button.MouseButton1Up:Connect(function() 
-            self:RestoreButtonStyle(button, btnColor) 
-        end)
-    elseif btnStyle == "lighten" then
-        button.MouseButton1Down:Connect(function() 
-            self:LightenButton(button) 
-        end)
-        button.MouseButton1Up:Connect(function() 
-            self:RestoreButtonStyle(button, btnColor) 
-        end)
-    elseif btnStyle == "hover" then
-        button.MouseEnter:Connect(function() 
-            self:LightenButton(button) 
-        end)
-        button.MouseLeave:Connect(function() 
-            self:RestoreButtonStyle(button, btnColor) 
-        end)
-    elseif btnStyle == "hover-dark" then
-        button.MouseEnter:Connect(function() 
-            self:DarkenButton(button) 
-        end)
-        button.MouseLeave:Connect(function() 
-            self:RestoreButtonStyle(button, btnColor) 
-        end)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = btn
+    
+    local darker = Color3.fromRGB(
+        math.max(btnColor.R * 255 - 50, 0),
+        math.max(btnColor.G * 255 - 50, 0),
+        math.max(btnColor.B * 255 - 50, 0)
+    )
+    
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, btnColor),
+        ColorSequenceKeypoint.new(1, darker)
+    })
+    gradient.Rotation = 90
+    gradient.Parent = btn
+    
+    local brighter = Color3.fromRGB(
+        math.min(btnColor.R * 255 + 120, 255),
+        math.min(btnColor.G * 255 + 120, 255),
+        math.min(btnColor.B * 255 + 120, 255)
+    )
+    btn.TextColor3 = brighter
+    
+    btn.MouseEnter:Connect(function()
+        local hoverColor = Color3.fromRGB(
+            math.min(btnColor.R * 255 + 30, 255),
+            math.min(btnColor.G * 255 + 30, 255),
+            math.min(btnColor.B * 255 + 30, 255)
+        )
+        local hoverDarker = Color3.fromRGB(
+            math.max(hoverColor.R * 255 - 50, 0),
+            math.max(hoverColor.G * 255 - 50, 0),
+            math.max(hoverColor.B * 255 - 50, 0)
+        )
+        gradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, hoverColor),
+            ColorSequenceKeypoint.new(1, hoverDarker)
+        })
+    end)
+    
+    btn.MouseLeave:Connect(function()
+        gradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, btnColor),
+            ColorSequenceKeypoint.new(1, darker)
+        })
+    end)
+    
+    btn.MouseButton1Down:Connect(function()
+        btn:TweenSize(
+            UDim2.new(0, btn.Size.X.Offset - 4, 0, btn.Size.Y.Offset - 4),
+            "Out",
+            "Quad",
+            0.05,
+            true
+        )
+    end)
+    
+    btn.MouseButton1Up:Connect(function()
+        btn:TweenSize(
+            size or UDim2.new(0, 120, 0, 35),
+            "Out",
+            "Quad",
+            0.05,
+            true
+        )
+    end)
+    
+    if callback then
+        btn.MouseButton1Click:Connect(callback)
     end
     
-    return button
+    return btn
 end
 
 function YUUGTRL:CreateWindow(title, size, position, options)
@@ -304,11 +312,11 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     local CloseBtn
     
     if options.ShowSettings ~= false then
-        SettingsBtn = self:CreateButton(Header, "⚙", nil, options.AccentColor or Color3.fromRGB(80, 100, 220), UDim2.new(1, -70 * scale, 0, 5 * scale), UDim2.new(0, 30 * scale, 0, 30 * scale), "darken")
+        SettingsBtn = self:CreateButton(Header, "⚙", nil, options.AccentColor or Color3.fromRGB(80, 100, 220), UDim2.new(1, -70 * scale, 0, 5 * scale), UDim2.new(0, 30 * scale, 0, 30 * scale))
     end
     
     if options.ShowClose ~= false then
-        CloseBtn = self:CreateButton(Header, "X", nil, options.CloseColor or Color3.fromRGB(255, 100, 100), UDim2.new(1, -35 * scale, 0, 5 * scale), UDim2.new(0, 30 * scale, 0, 30 * scale), "darken")
+        CloseBtn = self:CreateButton(Header, "X", nil, options.CloseColor or Color3.fromRGB(255, 100, 100), UDim2.new(1, -35 * scale, 0, 5 * scale), UDim2.new(0, 30 * scale, 0, 30 * scale))
         CloseBtn.MouseButton1Click:Connect(function() 
             ScreenGui:Destroy() 
         end)
@@ -408,10 +416,10 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         return label
     end
     
-    function window:CreateButton(text, callback, color, position, size, style, translationKey)
+    function window:CreateButton(text, callback, color, position, size, translationKey)
         local btnPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
         local btnSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
-        local btn = YUUGTRL:CreateButton(self.Main, text, callback, color, btnPos, btnSize, style)
+        local btn = YUUGTRL:CreateButton(self.Main, text, callback, color, btnPos, btnSize)
         btn.TextSize = btn.TextSize * self.scale
         if translationKey then
             YUUGTRL:RegisterTranslatable(btn, translationKey)
@@ -444,20 +452,6 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     
     function window:UpdateLanguage()
         YUUGTRL:UpdateAllTexts()
-    end
-    
-    function window:CreateToggle(text, default, callback, position, size, colors, translationKey)
-        local togglePos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
-        local toggleSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
-        
-        local toggle = YUUGTRL:CreateToggle(self.Main, text, default, callback, togglePos, toggleSize, colors)
-        
-        if translationKey then
-            YUUGTRL:RegisterTranslatable(toggle.label, translationKey)
-        end
-        
-        table.insert(self.elements, {type = "toggle", obj = toggle})
-        return toggle
     end
     
     function window:CreateButtonToggle(text, default, callback, position, size, colors, translationKey)
@@ -532,30 +526,6 @@ function YUUGTRL:CreateLabel(parent, text, position, size, color)
     })
 end
 
-function YUUGTRL:CreateButton(parent, text, callback, color, position, size, style)
-    if not parent then return end
-    local btn = Create({
-        type = "TextButton",
-        Size = size or UDim2.new(0, 100, 0, 35),
-        Position = position or UDim2.new(0, 0, 0, 0),
-        BackgroundColor3 = color or Color3.fromRGB(60, 100, 200),
-        Text = text or "Button",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        Font = Enum.Font.GothamBold,
-        TextSize = 14,
-        Parent = parent
-    })
-    
-    Create({type = "UICorner",CornerRadius = UDim.new(0, 8),Parent = btn})
-    self:MakeButton(btn, color, style)
-    
-    if callback then
-        btn.MouseButton1Click:Connect(callback)
-    end
-    
-    return btn
-end
-
 function YUUGTRL:CreateSlider(parent, text, min, max, default, callback, position, size)
     if not parent then return end
     local frame = self:CreateFrame(parent, size or UDim2.new(0, 200, 0, 50), position, Color3.fromRGB(45, 45, 55), 8)
@@ -598,148 +568,6 @@ function YUUGTRL:CreateSlider(parent, text, min, max, default, callback, positio
     return slider
 end
 
-function YUUGTRL:CreateToggle(parent, text, default, callback, position, size, colors)
-    if not parent then return end
-    
-    colors = colors or {}
-    local toggleState = default or false
-    local toggleColor = colors.toggleOn or Color3.fromRGB(80, 200, 120)
-    local toggleOffColor = colors.toggleOff or Color3.fromRGB(100, 100, 100)
-    local knobColor = colors.knob or Color3.fromRGB(255, 255, 255)
-    local textColor = colors.text or Color3.fromRGB(255, 255, 255)
-    
-    local frame = self:CreateFrame(parent, 
-        size or UDim2.new(0, 200, 0, 35), 
-        position or UDim2.new(0, 0, 0, 0), 
-        Color3.fromRGB(45, 45, 55), 
-        8
-    )
-    
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -50, 1, 0)
-    label.Position = UDim2.new(0, 10, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text or "Toggle"
-    label.TextColor3 = textColor
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 14
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = frame
-    
-    local toggleBg = Instance.new("Frame")
-    toggleBg.Size = UDim2.new(0, 40, 0, 20)
-    toggleBg.Position = UDim2.new(1, -45, 0.5, -10)
-    toggleBg.BackgroundColor3 = toggleState and toggleColor or toggleOffColor
-    toggleBg.BackgroundTransparency = 0
-    toggleBg.BorderSizePixel = 0
-    toggleBg.Parent = frame
-    
-    local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(1, 0)
-    toggleCorner.Parent = toggleBg
-    
-    local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0, 16, 0, 16)
-    knob.Position = toggleState and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-    knob.BackgroundColor3 = knobColor
-    knob.BackgroundTransparency = 0
-    knob.BorderSizePixel = 0
-    knob.Parent = toggleBg
-    
-    local knobCorner = Instance.new("UICorner")
-    knobCorner.CornerRadius = UDim.new(1, 0)
-    knobCorner.Parent = knob
-    
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, 0, 1, 0)
-    button.BackgroundTransparency = 1
-    button.Text = ""
-    button.Parent = frame
-    
-    local function updateToggle(state)
-        toggleState = state
-        toggleBg.BackgroundColor3 = state and toggleColor or toggleOffColor
-        
-        local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        local targetPos = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-        local tween = TweenService:Create(knob, tweenInfo, {Position = targetPos})
-        tween:Play()
-        
-        if callback then
-            pcall(callback, state)
-        end
-    end
-    
-    button.MouseButton1Click:Connect(function()
-        updateToggle(not toggleState)
-    end)
-    
-    button.TouchTap:Connect(function()
-        updateToggle(not toggleState)
-    end)
-    
-    button.MouseEnter:Connect(function()
-        TweenService:Create(frame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(55, 55, 65)}):Play()
-    end)
-    
-    button.MouseLeave:Connect(function()
-        TweenService:Create(frame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(45, 45, 55)}):Play()
-    end)
-    
-    local toggle = {
-        frame = frame,
-        label = label,
-        toggleBg = toggleBg,
-        knob = knob,
-        button = button
-    }
-    
-    function toggle:SetState(state)
-        updateToggle(state)
-    end
-    
-    function toggle:GetState()
-        return toggleState
-    end
-    
-    function toggle:Toggle()
-        updateToggle(not toggleState)
-    end
-    
-    function toggle:SetColors(newColors)
-        if newColors.toggleOn then
-            toggleColor = newColors.toggleOn
-            if toggleState then
-                toggleBg.BackgroundColor3 = toggleColor
-            end
-        end
-        if newColors.toggleOff then
-            toggleOffColor = newColors.toggleOff
-            if not toggleState then
-                toggleBg.BackgroundColor3 = toggleOffColor
-            end
-        end
-        if newColors.knob then
-            knobColor = newColors.knob
-            knob.BackgroundColor3 = knobColor
-        end
-        if newColors.text then
-            textColor = newColors.text
-            label.TextColor3 = textColor
-        end
-    end
-    
-    function toggle:SetText(newText)
-        label.Text = newText
-    end
-    
-    function toggle:Destroy()
-        frame:Destroy()
-    end
-    
-    return toggle
-end
-
 function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, size, colors)
     if not parent then return end
     
@@ -747,44 +575,83 @@ function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, s
     local isOn = default or false
     
     local colorOn = colors.on or Color3.fromRGB(80, 200, 120)
-    local colorOff = colors.off or Color3.fromRGB(100, 100, 100)
-    local textColor = colors.text or Color3.fromRGB(255, 255, 255)
+    local colorOff = colors.off or Color3.fromRGB(60, 100, 200)
     
     local button = Instance.new("TextButton")
     button.Size = size or UDim2.new(0, 120, 0, 35)
     button.Position = position or UDim2.new(0, 0, 0, 0)
     button.BackgroundColor3 = isOn and colorOn or colorOff
     button.Text = text or "Button"
-    button.TextColor3 = textColor
-    button.Font = Enum.Font.Gotham
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.GothamBold
     button.TextSize = 14
     button.Parent = parent
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
+    corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = button
     
-    local function updateVisuals()
-        button.BackgroundColor3 = isOn and colorOn or colorOff
+    local function updateGradient()
+        local currentColor = isOn and colorOn or colorOff
+        local darker = Color3.fromRGB(
+            math.max(currentColor.R * 255 - 50, 0),
+            math.max(currentColor.G * 255 - 50, 0),
+            math.max(currentColor.B * 255 - 50, 0)
+        )
+        
+        if button:FindFirstChild("UIGradient") then
+            button:FindFirstChild("UIGradient"):Destroy()
+        end
+        
+        local gradient = Instance.new("UIGradient")
+        gradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, currentColor),
+            ColorSequenceKeypoint.new(1, darker)
+        })
+        gradient.Rotation = 90
+        gradient.Parent = button
+        
+        local brighter = Color3.fromRGB(
+            math.min(currentColor.R * 255 + 120, 255),
+            math.min(currentColor.G * 255 + 120, 255),
+            math.min(currentColor.B * 255 + 120, 255)
+        )
+        button.TextColor3 = brighter
     end
     
+    updateGradient()
+    
     button.MouseEnter:Connect(function()
-        local baseColor = isOn and colorOn or colorOff
-        button.BackgroundColor3 = Color3.fromRGB(
-            math.min(baseColor.R * 255 + 30, 255),
-            math.min(baseColor.G * 255 + 30, 255),
-            math.min(baseColor.B * 255 + 30, 255)
+        local currentColor = isOn and colorOn or colorOff
+        local hoverColor = Color3.fromRGB(
+            math.min(currentColor.R * 255 + 30, 255),
+            math.min(currentColor.G * 255 + 30, 255),
+            math.min(currentColor.B * 255 + 30, 255)
         )
+        local hoverDarker = Color3.fromRGB(
+            math.max(hoverColor.R * 255 - 50, 0),
+            math.max(hoverColor.G * 255 - 50, 0),
+            math.max(hoverColor.B * 255 - 50, 0)
+        )
+        
+        if button:FindFirstChild("UIGradient") then
+            button:FindFirstChild("UIGradient"):Destroy()
+        end
+        
+        local gradient = Instance.new("UIGradient")
+        gradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, hoverColor),
+            ColorSequenceKeypoint.new(1, hoverDarker)
+        })
+        gradient.Rotation = 90
+        gradient.Parent = button
     end)
     
     button.MouseLeave:Connect(function()
-        updateVisuals()
+        updateGradient()
     end)
     
-    button.MouseButton1Click:Connect(function()
-        isOn = not isOn
-        updateVisuals()
-        
+    button.MouseButton1Down:Connect(function()
         button:TweenSize(
             UDim2.new(0, button.Size.X.Offset - 4, 0, button.Size.Y.Offset - 4),
             "Out",
@@ -792,7 +659,9 @@ function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, s
             0.05,
             true
         )
-        task.wait(0.05)
+    end)
+    
+    button.MouseButton1Up:Connect(function()
         button:TweenSize(
             size or UDim2.new(0, 120, 0, 35),
             "Out",
@@ -800,7 +669,11 @@ function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, s
             0.05,
             true
         )
-        
+    end)
+    
+    button.MouseButton1Click:Connect(function()
+        isOn = not isOn
+        updateGradient()
         if callback then
             pcall(callback, isOn)
         end
@@ -810,7 +683,7 @@ function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, s
     
     function toggleObject:SetState(state)
         isOn = state
-        updateVisuals()
+        updateGradient()
         if callback then callback(isOn) end
     end
     
@@ -820,19 +693,12 @@ function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, s
     
     function toggleObject:Toggle()
         isOn = not isOn
-        updateVisuals()
+        updateGradient()
         if callback then callback(isOn) end
     end
     
     function toggleObject:SetText(newText)
         button.Text = newText
-    end
-    
-    function toggleObject:SetColors(newColors)
-        if newColors.on then colorOn = newColors.on end
-        if newColors.off then colorOff = newColors.off end
-        if newColors.text then textColor = newColors.text end
-        updateVisuals()
     end
     
     function toggleObject:Destroy()
