@@ -86,6 +86,48 @@ end)
 local languages = {}
 local currentLanguage = "English"
 local translatableElements = {}
+local themes = {
+    dark = {
+        MainColor = Color3.fromRGB(30, 30, 40),
+        HeaderColor = Color3.fromRGB(40, 40, 50),
+        TextColor = Color3.fromRGB(255, 255, 255),
+        AccentColor = Color3.fromRGB(80, 100, 220),
+        ButtonColor = Color3.fromRGB(60, 100, 200),
+        FrameColor = Color3.fromRGB(35, 35, 45),
+        InputColor = Color3.fromRGB(40, 40, 50)
+    },
+    light = {
+        MainColor = Color3.fromRGB(240, 240, 245),
+        HeaderColor = Color3.fromRGB(230, 230, 235),
+        TextColor = Color3.fromRGB(0, 0, 0),
+        AccentColor = Color3.fromRGB(0, 120, 215),
+        ButtonColor = Color3.fromRGB(0, 120, 215),
+        FrameColor = Color3.fromRGB(220, 220, 225),
+        InputColor = Color3.fromRGB(255, 255, 255)
+    },
+    purple = {
+        MainColor = Color3.fromRGB(35, 25, 45),
+        HeaderColor = Color3.fromRGB(45, 35, 55),
+        TextColor = Color3.fromRGB(255, 255, 255),
+        AccentColor = Color3.fromRGB(170, 85, 255),
+        ButtonColor = Color3.fromRGB(140, 70, 250),
+        FrameColor = Color3.fromRGB(40, 30, 50),
+        InputColor = Color3.fromRGB(50, 40, 60)
+    }
+}
+local currentTheme = themes.dark
+
+function YUUGTRL:SetTheme(themeName)
+    if themes[themeName] then
+        currentTheme = themes[themeName]
+        return true
+    end
+    return false
+end
+
+function YUUGTRL:GetTheme()
+    return currentTheme
+end
 
 function YUUGTRL:AddLanguage(name, translations)
     languages[name] = translations
@@ -128,11 +170,14 @@ function YUUGTRL:UpdateAllTexts()
         if item.element and item.element.Parent then
             local newText = self:GetText(item.key)
             if newText then
-                pcall(function()
+                local success, err = pcall(function()
                     if item.element:IsA("TextLabel") or item.element:IsA("TextButton") then
                         item.element.Text = newText
                     end
                 end)
+                if not success then
+                    table.remove(translatableElements, i)
+                end
             end
         else
             table.remove(translatableElements, i)
@@ -158,7 +203,7 @@ end
 function YUUGTRL:CreateButton(parent, text, callback, color, position, size)
     if not parent then return end
     
-    local btnColor = color or Color3.fromRGB(60, 100, 200)
+    local btnColor = color or currentTheme.ButtonColor
     
     local btn = Create({
         type = "TextButton",
@@ -191,9 +236,9 @@ function YUUGTRL:CreateButton(parent, text, callback, color, position, size)
     gradient.Parent = btn
     
     local brighter = Color3.fromRGB(
-        math.min(btnColor.R * 255 + 150, 255),
-        math.min(btnColor.G * 255 + 150, 255),
-        math.min(btnColor.B * 255 + 150, 255)
+        math.min(btnColor.R * 255 + 200, 255),
+        math.min(btnColor.G * 255 + 200, 255),
+        math.min(btnColor.B * 255 + 200, 255)
     )
     btn.TextColor3 = brighter
     
@@ -212,6 +257,7 @@ function YUUGTRL:CreateButton(parent, text, callback, color, position, size)
             ColorSequenceKeypoint.new(0, hoverColor),
             ColorSequenceKeypoint.new(1, hoverDarker)
         })
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     end)
     
     btn.MouseLeave:Connect(function()
@@ -219,6 +265,7 @@ function YUUGTRL:CreateButton(parent, text, callback, color, position, size)
             ColorSequenceKeypoint.new(0, btnColor),
             ColorSequenceKeypoint.new(1, darker)
         })
+        btn.TextColor3 = brighter
     end)
     
     if callback then
@@ -259,9 +306,9 @@ function YUUGTRL:RestoreButtonStyle(button, color)
             ColorSequenceKeypoint.new(1, darker)
         })
         local brighter = Color3.fromRGB(
-            math.min(color.R * 255 + 150, 255),
-            math.min(color.G * 255 + 150, 255),
-            math.min(color.B * 255 + 150, 255)
+            math.min(color.R * 255 + 200, 255),
+            math.min(color.G * 255 + 200, 255),
+            math.min(color.B * 255 + 200, 255)
         )
         button.TextColor3 = brighter
     end
@@ -272,7 +319,7 @@ function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, s
     
     colors = colors or {}
     local isOn = default or false
-    local buttonColor = colors.off or Color3.fromRGB(60, 100, 200)
+    local buttonColor = colors.off or currentTheme.ButtonColor
     if colors.on then
         buttonColor = colors.on
     end
@@ -291,34 +338,17 @@ function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, s
     corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = button
     
-    local darker = Color3.fromRGB(
-        math.max(buttonColor.R * 255 - 50, 0),
-        math.max(buttonColor.G * 255 - 50, 0),
-        math.max(buttonColor.B * 255 - 50, 0)
-    )
-    
     local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, buttonColor),
-        ColorSequenceKeypoint.new(1, darker)
-    })
     gradient.Rotation = 90
     gradient.Parent = button
     
     local brighter = Color3.fromRGB(
-        math.min(buttonColor.R * 255 + 150, 255),
-        math.min(buttonColor.G * 255 + 150, 255),
-        math.min(buttonColor.B * 255 + 150, 255)
+        math.min(buttonColor.R * 255 + 200, 255),
+        math.min(buttonColor.G * 255 + 200, 255),
+        math.min(buttonColor.B * 255 + 200, 255)
     )
     
     local function updateGradient()
-        local grad = button:FindFirstChildOfClass("UIGradient")
-        if not grad then
-            grad = Instance.new("UIGradient")
-            grad.Rotation = 90
-            grad.Parent = button
-        end
-        
         local currentColor = buttonColor
         local darkAmount = isOn and 70 or 50
         local darker2 = Color3.fromRGB(
@@ -327,16 +357,16 @@ function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, s
             math.max(currentColor.B * 255 - darkAmount, 0)
         )
         
-        grad.Color = ColorSequence.new({
+        gradient.Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, isOn and darker2 or currentColor),
             ColorSequenceKeypoint.new(1, darker2)
         })
         
         if isOn then
             button.TextColor3 = Color3.fromRGB(
-                math.min(currentColor.R * 255 + 180, 255),
-                math.min(currentColor.G * 255 + 180, 255),
-                math.min(currentColor.B * 255 + 180, 255)
+                math.min(currentColor.R * 255 + 230, 255),
+                math.min(currentColor.G * 255 + 230, 255),
+                math.min(currentColor.B * 255 + 230, 255)
             )
         else
             button.TextColor3 = brighter
@@ -358,13 +388,10 @@ function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, s
             math.max(hoverColor.B * 255 - 50, 0)
         )
         
-        local grad = button:FindFirstChildOfClass("UIGradient")
-        if grad then
-            grad.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, hoverColor),
-                ColorSequenceKeypoint.new(1, hoverDarker)
-            })
-        end
+        gradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, hoverColor),
+            ColorSequenceKeypoint.new(1, hoverDarker)
+        })
         
         button.TextColor3 = Color3.fromRGB(255, 255, 255)
     end)
@@ -418,6 +445,245 @@ function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, s
     return toggleObject
 end
 
+function YUUGTRL:CreateTextBox(parent, placeholder, text, callback, position, size, color)
+    if not parent then return end
+    
+    local frameColor = color or currentTheme.InputColor
+    local textColor = currentTheme.TextColor
+    
+    local frame = self:CreateFrame(parent, size or UDim2.new(0, 200, 0, 35), position, frameColor, 8)
+    
+    local textBox = Instance.new("TextBox")
+    textBox.Size = UDim2.new(1, -10, 1, 0)
+    textBox.Position = UDim2.new(0, 5, 0, 0)
+    textBox.BackgroundTransparency = 1
+    textBox.PlaceholderText = placeholder or ""
+    textBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+    textBox.Text = text or ""
+    textBox.TextColor3 = textColor
+    textBox.Font = Enum.Font.Gotham
+    textBox.TextSize = 14
+    textBox.ClearTextOnFocus = false
+    textBox.Parent = frame
+    
+    if callback then
+        textBox.FocusLost:Connect(function(enterPressed)
+            pcall(callback, textBox.Text, enterPressed)
+        end)
+    end
+    
+    local textBoxObject = {}
+    
+    function textBoxObject:GetText()
+        return textBox.Text
+    end
+    
+    function textBoxObject:SetText(newText)
+        textBox.Text = newText
+    end
+    
+    function textBoxObject:SetPlaceholder(newPlaceholder)
+        textBox.PlaceholderText = newPlaceholder
+    end
+    
+    function textBoxObject:Destroy()
+        frame:Destroy()
+    end
+    
+    textBoxObject.frame = frame
+    textBoxObject.textBox = textBox
+    
+    return textBoxObject
+end
+
+function YUUGTRL:CreateDropdown(parent, text, options, default, callback, position, size, colors)
+    if not parent then return end
+    
+    colors = colors or {}
+    local frameColor = colors.frame or currentTheme.InputColor
+    local buttonColor = colors.button or currentTheme.ButtonColor
+    local textColor = currentTheme.TextColor
+    
+    local frame = self:CreateFrame(parent, size or UDim2.new(0, 200, 0, 35), position, frameColor, 8)
+    
+    local selectedText = Instance.new("TextLabel")
+    selectedText.Size = UDim2.new(1, -40, 1, 0)
+    selectedText.Position = UDim2.new(0, 10, 0, 0)
+    selectedText.BackgroundTransparency = 1
+    selectedText.Text = default or (options[1] or "Select")
+    selectedText.TextColor3 = textColor
+    selectedText.Font = Enum.Font.Gotham
+    selectedText.TextSize = 14
+    selectedText.TextXAlignment = Enum.TextXAlignment.Left
+    selectedText.Parent = frame
+    
+    local arrow = Instance.new("TextLabel")
+    arrow.Size = UDim2.new(0, 30, 1, 0)
+    arrow.Position = UDim2.new(1, -30, 0, 0)
+    arrow.BackgroundTransparency = 1
+    arrow.Text = "▼"
+    arrow.TextColor3 = textColor
+    arrow.Font = Enum.Font.Gotham
+    arrow.TextSize = 14
+    arrow.TextXAlignment = Enum.TextXAlignment.Center
+    arrow.Parent = frame
+    
+    local dropdownFrame = nil
+    local isOpen = false
+    
+    local function closeDropdown()
+        if dropdownFrame then
+            dropdownFrame:Destroy()
+            dropdownFrame = nil
+        end
+        isOpen = false
+    end
+    
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if isOpen then
+                closeDropdown()
+            else
+                closeDropdown()
+                
+                local absPos = frame.AbsolutePosition
+                local absSize = frame.AbsoluteSize
+                local parentAbsPos = parent.AbsolutePosition
+                
+                dropdownFrame = self:CreateFrame(parent, 
+                    UDim2.new(0, absSize.X, 0, #options * 30), 
+                    UDim2.new(0, absPos.X - parentAbsPos.X, 0, absPos.Y - parentAbsPos.Y + absSize.Y),
+                    frameColor, 8)
+                
+                for i, option in ipairs(options) do
+                    local optionButton = self:CreateButton(dropdownFrame, option, function()
+                        selectedText.Text = option
+                        closeDropdown()
+                        if callback then
+                            pcall(callback, option)
+                        end
+                    end, buttonColor, 
+                    UDim2.new(0, 0, 0, (i-1)*30), 
+                    UDim2.new(1, 0, 0, 30))
+                    optionButton.TextXAlignment = Enum.TextXAlignment.Left
+                end
+                
+                isOpen = true
+            end
+        end
+    end)
+    
+    local dropdownObject = {}
+    
+    function dropdownObject:GetSelected()
+        return selectedText.Text
+    end
+    
+    function dropdownObject:SetSelected(option)
+        if table.find(options, option) then
+            selectedText.Text = option
+        end
+    end
+    
+    function dropdownObject:SetOptions(newOptions)
+        options = newOptions
+    end
+    
+    function dropdownObject:Close()
+        closeDropdown()
+    end
+    
+    function dropdownObject:Destroy()
+        closeDropdown()
+        frame:Destroy()
+    end
+    
+    dropdownObject.frame = frame
+    
+    return dropdownObject
+end
+
+function YUUGTRL:CreateCheckbox(parent, text, default, callback, position, size, colors)
+    if not parent then return end
+    
+    colors = colors or {}
+    local isChecked = default or false
+    local frameColor = colors.frame or currentTheme.FrameColor
+    local checkColor = colors.check or currentTheme.AccentColor
+    local textColor = currentTheme.TextColor
+    
+    local frame = self:CreateFrame(parent, size or UDim2.new(0, 200, 0, 30), position, Color3.fromRGB(0, 0, 0, 0), 0)
+    
+    local checkbox = self:CreateFrame(frame, UDim2.new(0, 20, 0, 20), UDim2.new(0, 0, 0.5, -10), frameColor, 4)
+    
+    local checkmark = Instance.new("TextLabel")
+    checkmark.Size = UDim2.new(1, 0, 1, 0)
+    checkmark.BackgroundTransparency = 1
+    checkmark.Text = "✓"
+    checkmark.TextColor3 = checkColor
+    checkmark.Font = Enum.Font.GothamBold
+    checkmark.TextSize = 16
+    checkmark.TextTransparency = isChecked and 0 or 1
+    checkmark.Parent = checkbox
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -30, 1, 0)
+    label.Position = UDim2.new(0, 30, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text or "Checkbox"
+    label.TextColor3 = textColor
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 14
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+    
+    checkbox.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            isChecked = not isChecked
+            checkmark.TextTransparency = isChecked and 0 or 1
+            if callback then
+                pcall(callback, isChecked)
+            end
+        end
+    end)
+    
+    local checkboxObject = {}
+    
+    function checkboxObject:GetState()
+        return isChecked
+    end
+    
+    function checkboxObject:SetState(state)
+        isChecked = state
+        checkmark.TextTransparency = isChecked and 0 or 1
+        if callback then
+            pcall(callback, isChecked)
+        end
+    end
+    
+    function checkboxObject:Toggle()
+        isChecked = not isChecked
+        checkmark.TextTransparency = isChecked and 0 or 1
+        if callback then
+            pcall(callback, isChecked)
+        end
+    end
+    
+    function checkboxObject:SetText(newText)
+        label.Text = newText
+    end
+    
+    function checkboxObject:Destroy()
+        frame:Destroy()
+    end
+    
+    checkboxObject.frame = frame
+    checkboxObject.checkbox = checkbox
+    checkboxObject.label = label
+    
+    return checkboxObject
+end
+
 function YUUGTRL:CreateWindow(title, size, position, options)
     options = options or {}
     
@@ -454,7 +720,7 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         type = "Frame",
         Size = windowSize,
         Position = windowPos,
-        BackgroundColor3 = options.MainColor or Color3.fromRGB(30, 30, 40),
+        BackgroundColor3 = options.MainColor or currentTheme.MainColor,
         BorderSizePixel = 0,
         Parent = ScreenGui
     })
@@ -464,14 +730,14 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     local Header = Create({
         type = "Frame",
         Size = UDim2.new(1, 0, 0, 40 * scale),
-        BackgroundColor3 = options.HeaderColor or Color3.fromRGB(40, 40, 50),
+        BackgroundColor3 = options.HeaderColor or currentTheme.HeaderColor,
         BorderSizePixel = 0,
         Parent = Main
     })
     
     Create({type = "UICorner",CornerRadius = UDim.new(0, 12 * scale),Parent = Header})
     
-    local Title = self:CreateLabel(Header, title, UDim2.new(0, 15 * scale, 0, 0), UDim2.new(1, -100 * scale, 1, 0), options.TextColor or Color3.fromRGB(255, 255, 255))
+    local Title = self:CreateLabel(Header, title, UDim2.new(0, 15 * scale, 0, 0), UDim2.new(1, -100 * scale, 1, 0), options.TextColor or currentTheme.TextColor)
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.TextSize = 18 * scale
     if options.titleKey then
@@ -482,7 +748,7 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     local CloseBtn
     
     if options.ShowSettings ~= false then
-        SettingsBtn = self:CreateButton(Header, "⚙", nil, options.AccentColor or Color3.fromRGB(80, 100, 220), UDim2.new(1, -70 * scale, 0, 5 * scale), UDim2.new(0, 30 * scale, 0, 30 * scale))
+        SettingsBtn = self:CreateButton(Header, "⚙", nil, options.AccentColor or currentTheme.AccentColor, UDim2.new(1, -70 * scale, 0, 5 * scale), UDim2.new(0, 30 * scale, 0, 30 * scale))
     end
     
     if options.ShowClose ~= false then
@@ -648,6 +914,24 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         return toggle
     end
     
+    function window:CreateTextBox(placeholder, text, callback, position, size, color)
+        local boxPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
+        local boxSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
+        return YUUGTRL:CreateTextBox(self.Main, placeholder, text, callback, boxPos, boxSize, color)
+    end
+    
+    function window:CreateDropdown(text, options, default, callback, position, size, colors)
+        local dropPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
+        local dropSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
+        return YUUGTRL:CreateDropdown(self.Main, text, options, default, callback, dropPos, dropSize, colors)
+    end
+    
+    function window:CreateCheckbox(text, default, callback, position, size, colors)
+        local checkPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
+        local checkSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
+        return YUUGTRL:CreateCheckbox(self.Main, text, default, callback, checkPos, checkSize, colors)
+    end
+    
     return window
 end
 
@@ -657,7 +941,7 @@ function YUUGTRL:CreateFrame(parent, size, position, color, radius)
         type = "Frame",
         Size = size or UDim2.new(0, 100, 0, 100),
         Position = position or UDim2.new(0, 0, 0, 0),
-        BackgroundColor3 = color or Color3.fromRGB(35, 35, 45),
+        BackgroundColor3 = color or currentTheme.FrameColor,
         BorderSizePixel = 0,
         Parent = parent
     })
@@ -672,7 +956,7 @@ function YUUGTRL:CreateScrollingFrame(parent, size, position, color, radius)
     local frame = Instance.new("ScrollingFrame")
     frame.Size = size or UDim2.new(0, 200, 0, 200)
     frame.Position = position or UDim2.new(0, 0, 0, 0)
-    frame.BackgroundColor3 = color or Color3.fromRGB(35, 35, 45)
+    frame.BackgroundColor3 = color or currentTheme.FrameColor
     frame.BackgroundTransparency = 0
     frame.BorderSizePixel = 0
     frame.ScrollBarThickness = 4
@@ -698,7 +982,7 @@ function YUUGTRL:CreateLabel(parent, text, position, size, color)
         Position = position or UDim2.new(0, 0, 0, 0),
         BackgroundTransparency = 1,
         Text = text or "Label",
-        TextColor3 = color or Color3.fromRGB(255, 255, 255),
+        TextColor3 = color or currentTheme.TextColor,
         Font = Enum.Font.GothamBold,
         TextSize = 14,
         TextXAlignment = Enum.TextXAlignment.Left,
@@ -708,7 +992,7 @@ end
 
 function YUUGTRL:CreateSlider(parent, text, min, max, default, callback, position, size)
     if not parent then return end
-    local frame = self:CreateFrame(parent, size or UDim2.new(0, 200, 0, 50), position, Color3.fromRGB(45, 45, 55), 8)
+    local frame = self:CreateFrame(parent, size or UDim2.new(0, 200, 0, 50), position, currentTheme.FrameColor, 8)
     
     self:CreateLabel(frame, text or "", UDim2.new(0, 10, 0, 5), UDim2.new(1, -60, 0, 20))
     
@@ -717,7 +1001,7 @@ function YUUGTRL:CreateSlider(parent, text, min, max, default, callback, positio
     
     local slider = self:CreateFrame(frame, UDim2.new(1, -20, 0, 8), UDim2.new(0, 10, 0, 30), Color3.fromRGB(60, 60, 70), 4)
     
-    local fill = self:CreateFrame(slider, UDim2.new((default or 0) / max, 0, 1, 0), UDim2.new(0, 0, 0, 0), Color3.fromRGB(80, 100, 220), 4)
+    local fill = self:CreateFrame(slider, UDim2.new((default or 0) / max, 0, 1, 0), UDim2.new(0, 0, 0, 0), currentTheme.AccentColor, 4)
     
     local dragging = false
     
@@ -741,7 +1025,7 @@ function YUUGTRL:CreateSlider(parent, text, min, max, default, callback, positio
             local value = math.floor(min + (max - min) * percent)
             fill.Size = UDim2.new(percent, 0, 1, 0)
             valueLabel.Text = tostring(value)
-            if callback then callback(value) end
+            if callback then pcall(callback, value) end
         end
     end)
     
