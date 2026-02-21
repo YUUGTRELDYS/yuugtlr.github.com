@@ -446,7 +446,6 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         YUUGTRL:UpdateAllTexts()
     end
     
-    -- MODERN TOGGLE
     function window:CreateToggle(text, default, callback, position, size, colors, translationKey)
         local togglePos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
         local toggleSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
@@ -461,7 +460,6 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         return toggle
     end
     
-    -- BUTTON TOGGLE (НОВЫЙ)
     function window:CreateButtonToggle(text, default, callback, position, size, colors, translationKey)
         local btnPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
         local btnSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
@@ -600,7 +598,6 @@ function YUUGTRL:CreateSlider(parent, text, min, max, default, callback, positio
     return slider
 end
 
--- MODERN TOGGLE
 function YUUGTRL:CreateToggle(parent, text, default, callback, position, size, colors)
     if not parent then return end
     
@@ -743,19 +740,16 @@ function YUUGTRL:CreateToggle(parent, text, default, callback, position, size, c
     return toggle
 end
 
--- BUTTON TOGGLE (НОВЫЙ)
 function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, size, colors)
     if not parent then return end
     
     colors = colors or {}
     local isOn = default or false
     
-    -- Цвета для разных состояний
-    local colorOn = colors.on or Color3.fromRGB(80, 200, 120)    -- зеленый когда ВКЛ
-    local colorOff = colors.off or Color3.fromRGB(100, 100, 100) -- серый когда ВЫКЛ
+    local colorOn = colors.on or Color3.fromRGB(80, 200, 120)
+    local colorOff = colors.off or Color3.fromRGB(100, 100, 100)
     local textColor = colors.text or Color3.fromRGB(255, 255, 255)
     
-    -- Создаем кнопку
     local button = Instance.new("TextButton")
     button.Size = size or UDim2.new(0, 120, 0, 35)
     button.Position = position or UDim2.new(0, 0, 0, 0)
@@ -766,39 +760,31 @@ function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, s
     button.TextSize = 14
     button.Parent = parent
     
-    -- Скругляем углы
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 6)
     corner.Parent = button
     
-    -- Функция обновления внешнего вида
     local function updateVisuals()
         button.BackgroundColor3 = isOn and colorOn or colorOff
     end
     
-    -- Эффект при наведении
-    local function onHover()
+    button.MouseEnter:Connect(function()
         local baseColor = isOn and colorOn or colorOff
         button.BackgroundColor3 = Color3.fromRGB(
             math.min(baseColor.R * 255 + 30, 255),
             math.min(baseColor.G * 255 + 30, 255),
             math.min(baseColor.B * 255 + 30, 255)
         )
-    end
+    end)
     
-    local function onLeave()
+    button.MouseLeave:Connect(function()
         updateVisuals()
-    end
+    end)
     
-    button.MouseEnter:Connect(onHover)
-    button.MouseLeave:Connect(onLeave)
-    
-    -- Обработчик нажатия
     button.MouseButton1Click:Connect(function()
         isOn = not isOn
         updateVisuals()
         
-        -- Анимация нажатия
         button:TweenSize(
             UDim2.new(0, button.Size.X.Offset - 4, 0, button.Size.Y.Offset - 4),
             "Out",
@@ -820,7 +806,6 @@ function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, s
         end
     end)
     
-    -- Объект для управления
     local toggleObject = {}
     
     function toggleObject:SetState(state)
@@ -854,7 +839,6 @@ function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, s
         button:Destroy()
     end
     
-    -- Сохраняем ссылку на кнопку для переводов
     toggleObject.button = button
     
     return toggleObject
