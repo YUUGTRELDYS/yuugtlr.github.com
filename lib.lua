@@ -420,63 +420,7 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         return btn
     end
     
-    function window:CreateToggle(text, options)
-        options = options or {}
-        
-        local frame = self:CreateFrame(self.Main, 
-            options.size or UDim2.new(0, 200, 0, 35), 
-            options.position or UDim2.new(0, 10, 0, 10), 
-            options.backgroundColor or Color3.fromRGB(45, 45, 55), 
-            options.cornerRadius or 8
-        )
-        
-        local label = self:CreateLabel(frame, 
-            text or "Toggle", 
-            UDim2.new(0, 10, 0, 0), 
-            UDim2.new(1, -50, 1, 0), 
-            options.textColor or Color3.fromRGB(255, 255, 255)
-        )
-        label.TextSize = options.textSize or 14
-        label.Font = options.font or Enum.Font.GothamBold
-        
-        local onColor = options.onColor or Color3.fromRGB(80, 220, 100)
-        local offColor = options.offColor or Color3.fromRGB(220, 80, 80)
-        local toggleColor = (options.default or false) and onColor or offColor
-        
-        local toggleBtn = self:CreateButton(frame, "", nil, 
-            toggleColor, 
-            options.buttonPosition or UDim2.new(1, -40, 0, 2.5), 
-            options.buttonSize or UDim2.new(0, 30, 0, 30), 
-            "darken"
-        )
-        toggleBtn.BackgroundColor3 = toggleColor
-        
-        local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, options.buttonCornerRadius or 15)
-        btnCorner.Parent = toggleBtn
-        
-        local toggled = options.default or false
-        
-        if options.onClick then
-            toggleBtn.MouseButton1Click:Connect(function()
-                toggled = not toggled
-                local newColor = toggled and onColor or offColor
-                toggleBtn.BackgroundColor3 = newColor
-                self:ApplyButtonStyle(toggleBtn, newColor)
-                if options.onClick then
-                    options.onClick(toggled)
-                end
-            end)
-        end
-        
-        if translationKey then
-            YUUGTRL:RegisterTranslatable(label, translationKey)
-        end
-        
-        return toggleBtn
-    end
-    
-    function window:CreateToggleOld(text, default, callback, color, position, size, translationKey)
+    function window:CreateToggle(text, default, callback, color, position, size, translationKey)
         local frame = self:CreateFrame(self.Main, size or UDim2.new(0, 200, 0, 35), position, Color3.fromRGB(45, 45, 55), 8)
         
         local label = self:CreateLabel(frame, text, UDim2.new(0, 10, 0, 0), UDim2.new(1, -50, 1, 0))
@@ -607,31 +551,6 @@ function YUUGTRL:CreateButton(parent, text, callback, color, position, size, sty
     end
     
     return btn
-end
-
-function YUUGTRL:CreateToggle(parent, text, default, callback, color, position, size, translationKey)
-    local frame = self:CreateFrame(parent, size or UDim2.new(0, 200, 0, 35), position, Color3.fromRGB(45, 45, 55), 8)
-    
-    local label = self:CreateLabel(frame, text, UDim2.new(0, 10, 0, 0), UDim2.new(1, -50, 1, 0))
-    if translationKey then
-        YUUGTRL:RegisterTranslatable(label, translationKey)
-    end
-    
-    local toggleColor = default and Color3.fromRGB(80, 220, 100) or Color3.fromRGB(220, 80, 80)
-    local toggleBtn = self:CreateButton(frame, "", nil, toggleColor, UDim2.new(1, -40, 0, 2.5), UDim2.new(0, 30, 0, 30), "darken")
-    Create({type = "UICorner",CornerRadius = UDim.new(0, 15),Parent = toggleBtn})
-    
-    local toggled = default or false
-    
-    toggleBtn.MouseButton1Click:Connect(function()
-        toggled = not toggled
-        local newColor = toggled and Color3.fromRGB(80, 220, 100) or Color3.fromRGB(220, 80, 80)
-        toggleBtn.BackgroundColor3 = newColor
-        self:ApplyButtonStyle(toggleBtn, newColor)
-        if callback then callback(toggled) end
-    end)
-    
-    return toggleBtn
 end
 
 function YUUGTRL:CreateSlider(parent, text, min, max, default, callback, position, size)
