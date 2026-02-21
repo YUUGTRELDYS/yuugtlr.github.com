@@ -271,14 +271,9 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     
     local SettingsBtn
     local CloseBtn
-    local ResizeBtn
     
     if options.ShowSettings ~= false then
-        SettingsBtn = self:CreateButton(Header, "⚙", nil, options.AccentColor or Color3.fromRGB(80, 100, 220), UDim2.new(1, -105, 0, 5), UDim2.new(0, 30, 0, 30), "darken")
-    end
-    
-    if options.ShowResize ~= false then
-        ResizeBtn = self:CreateButton(Header, "◢", nil, options.AccentColor or Color3.fromRGB(80, 100, 220), UDim2.new(1, -70, 0, 5), UDim2.new(0, 30, 0, 30), "hover")
+        SettingsBtn = self:CreateButton(Header, "⚙", nil, options.AccentColor or Color3.fromRGB(80, 100, 220), UDim2.new(1, -70, 0, 5), UDim2.new(0, 30, 0, 30), "darken")
     end
     
     if options.ShowClose ~= false then
@@ -289,9 +284,6 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     end
     
     local dragging, dragInput, dragStart, startPos
-    local resizing = false
-    local resizeStart = nil
-    local resizeStartSize = nil
     
     Header.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -312,33 +304,10 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         end
     end)
     
-    if ResizeBtn then
-        ResizeBtn.MouseButton1Down:Connect(function(input)
-            resizing = true
-            resizeStart = input.Position
-            resizeStartSize = Main.Size
-        end)
-        
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                resizing = false
-                resizeStart = nil
-                resizeStartSize = nil
-            end
-        end)
-    end
-    
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - dragStart
             Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-        
-        if resizing and resizeStart and resizeStartSize and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - resizeStart
-            local newWidth = math.max(200, resizeStartSize.X.Offset + delta.X)
-            local newHeight = math.max(150, resizeStartSize.Y.Offset + delta.Y)
-            Main.Size = UDim2.new(0, newWidth, 0, newHeight)
         end
     end)
     
@@ -349,7 +318,6 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         Title = Title,
         SettingsBtn = SettingsBtn,
         CloseBtn = CloseBtn,
-        ResizeBtn = ResizeBtn,
         elements = {}
     }
     
@@ -406,6 +374,35 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         return YUUGTRL:CreateSlider(self.Main, text, min, max, default, callback, position, size)
     end
     
+    function window:CreateSizeControl(position, size)
+        local frame = YUUGTRL:CreateFrame(self.Main, size or UDim2.new(0, 150, 0, 35), position, Color3.fromRGB(45, 45, 55), 8)
+        
+        local label = YUUGTRL:CreateLabel(frame, "Window Size", UDim2.new(0, 10, 0, 0), UDim2.new(1, -80, 1, 0))
+        label.TextSize = 12
+        
+        local currentWidth = self.Main.Size.X.Offset
+        local currentHeight = self.Main.Size.Y.Offset
+        local sizeLabel = YUUGTRL:CreateLabel(frame, currentWidth.."x"..currentHeight, UDim2.new(0.5, -20, 0, 0), UDim2.new(0, 60, 1, 0))
+        sizeLabel.TextXAlignment = Enum.TextXAlignment.Center
+        sizeLabel.TextSize = 12
+        
+        local minusBtn = YUUGTRL:CreateButton(frame, "-", function()
+            local newWidth = math.max(200, self.Main.Size.X.Offset - 50)
+            local newHeight = math.max(150, self.Main.Size.Y.Offset - 30)
+            self.Main.Size = UDim2.new(0, newWidth, 0, newHeight)
+            sizeLabel.Text = newWidth.."x"..newHeight
+        end, Color3.fromRGB(220, 80, 80), UDim2.new(1, -70, 0, 2.5), UDim2.new(0, 30, 0, 30), "darken")
+        
+        local plusBtn = YUUGTRL:CreateButton(frame, "+", function()
+            local newWidth = self.Main.Size.X.Offset + 50
+            local newHeight = self.Main.Size.Y.Offset + 30
+            self.Main.Size = UDim2.new(0, newWidth, 0, newHeight)
+            sizeLabel.Text = newWidth.."x"..newHeight
+        end, Color3.fromRGB(80, 220, 100), UDim2.new(1, -35, 0, 2.5), UDim2.new(0, 30, 0, 30), "lighten")
+        
+        return frame
+    end
+    
     function window:SetSettingsCallback(callback)
         if SettingsBtn then
             SettingsBtn.MouseButton1Click:Connect(callback)
@@ -415,12 +412,6 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     function window:SetCloseCallback(callback)
         if CloseBtn then
             CloseBtn.MouseButton1Click:Connect(callback)
-        end
-    end
-    
-    function window:SetResizeEnabled(enabled)
-        if ResizeBtn then
-            ResizeBtn.Visible = enabled
         end
     end
     
