@@ -8,7 +8,7 @@ local viewportSize = workspace.CurrentCamera.ViewportSize
 
 local scale = 1
 if isMobile then
-    scale = 0.65 -- Просто уменьшаем всё одинаково
+    scale = 1 -- Не уменьшаем, а адаптируем контейнеры
 end
 
 local splash = Instance.new("ScreenGui")
@@ -18,8 +18,8 @@ splash.DisplayOrder = 9999
 splash.ResetOnSpawn = false
 splash.Parent = player:WaitForChild("PlayerGui")
 
-local splashWidth = 200 * scale
-local splashHeight = 50 * scale
+local splashWidth = 200
+local splashHeight = 50
 local splashFrame = Instance.new("Frame")
 splashFrame.Size = UDim2.new(0, splashWidth, 0, splashHeight)
 splashFrame.Position = UDim2.new(1, -splashWidth - 15, 0, 15)
@@ -29,7 +29,7 @@ splashFrame.BorderSizePixel = 0
 splashFrame.Parent = splash
 
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 10 * scale)
+corner.CornerRadius = UDim.new(0, 10)
 corner.Parent = splashFrame
 
 local gradient = Instance.new("UIGradient")
@@ -41,24 +41,24 @@ gradient.Rotation = 90
 gradient.Parent = splashFrame
 
 local logo = Instance.new("TextLabel")
-logo.Size = UDim2.new(0.6, -5 * scale, 1, 0)
-logo.Position = UDim2.new(0, 8 * scale, 0, 0)
+logo.Size = UDim2.new(0.6, -5, 1, 0)
+logo.Position = UDim2.new(0, 8, 0, 0)
 logo.BackgroundTransparency = 1
 logo.Text = "YUUGTRL"
 logo.TextColor3 = Color3.fromRGB(255, 255, 255)
 logo.Font = Enum.Font.GothamBold
-logo.TextSize = 22 * scale
+logo.TextSize = 22
 logo.TextXAlignment = Enum.TextXAlignment.Left
 logo.Parent = splashFrame
 
 local loaded = Instance.new("TextLabel")
-loaded.Size = UDim2.new(0.4, -5 * scale, 1, 0)
+loaded.Size = UDim2.new(0.4, -5, 1, 0)
 loaded.Position = UDim2.new(0.6, 0, 0, 0)
 loaded.BackgroundTransparency = 1
 loaded.Text = "loaded"
 loaded.TextColor3 = Color3.fromRGB(255, 255, 255)
 loaded.Font = Enum.Font.Gotham
-loaded.TextSize = 14 * scale
+loaded.TextSize = 14
 loaded.TextXAlignment = Enum.TextXAlignment.Left
 loaded.Parent = splashFrame
 
@@ -244,23 +244,13 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     options = options or {}
     
     local screenSize = workspace.CurrentCamera.ViewportSize
-    local scale = 1
+    local windowSize = size or UDim2.new(0, 350, 0, 450)
+    local windowPos = position or UDim2.new(0.5, -175, 0.5, -225)
+    
+    -- Для мобильных устройств делаем окно на весь экран
     if isMobile then
-        scale = 0.65
-    end
-    
-    local windowSize = size
-    if size then
-        windowSize = UDim2.new(size.X.Scale, size.X.Offset * scale, size.Y.Scale, size.Y.Offset * scale)
-    else
-        windowSize = UDim2.new(0, 350 * scale, 0, 450 * scale)
-    end
-    
-    local windowPos = position
-    if not windowPos then
-        windowPos = UDim2.new(0.5, -(175 * scale), 0.5, -(225 * scale))
-    elseif position then
-        windowPos = UDim2.new(position.X.Scale, position.X.Offset * scale, position.Y.Scale, position.Y.Offset * scale)
+        windowSize = UDim2.new(1, -20, 1, -20) -- Почти весь экран с отступами
+        windowPos = UDim2.new(0, 10, 0, 10)
     end
     
     local ScreenGui = Create({
@@ -281,21 +271,21 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         Parent = ScreenGui
     })
     
-    Create({type = "UICorner",CornerRadius = UDim.new(0, 12 * scale),Parent = Main})
+    Create({type = "UICorner",CornerRadius = UDim.new(0, 12),Parent = Main})
     
     local Header = Create({
         type = "Frame",
-        Size = UDim2.new(1, 0, 0, 40 * scale),
+        Size = UDim2.new(1, 0, 0, 40),
         BackgroundColor3 = options.HeaderColor or Color3.fromRGB(40, 40, 50),
         BorderSizePixel = 0,
         Parent = Main
     })
     
-    Create({type = "UICorner",CornerRadius = UDim.new(0, 12 * scale),Parent = Header})
+    Create({type = "UICorner",CornerRadius = UDim.new(0, 12),Parent = Header})
     
-    local Title = self:CreateLabel(Header, title, UDim2.new(0, 15 * scale, 0, 0), UDim2.new(1, -100 * scale, 1, 0), options.TextColor or Color3.fromRGB(255, 255, 255))
+    local Title = self:CreateLabel(Header, title, UDim2.new(0, 15, 0, 0), UDim2.new(1, -100, 1, 0), options.TextColor or Color3.fromRGB(255, 255, 255))
     Title.TextXAlignment = Enum.TextXAlignment.Left
-    Title.TextSize = 18 * scale
+    Title.TextSize = 18
     if options.titleKey then
         self:RegisterTranslatable(Title, options.titleKey)
     end
@@ -304,11 +294,11 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     local CloseBtn
     
     if options.ShowSettings ~= false then
-        SettingsBtn = self:CreateButton(Header, "⚙", nil, options.AccentColor or Color3.fromRGB(80, 100, 220), UDim2.new(1, -70 * scale, 0, 5 * scale), UDim2.new(0, 30 * scale, 0, 30 * scale), "darken")
+        SettingsBtn = self:CreateButton(Header, "⚙", nil, options.AccentColor or Color3.fromRGB(80, 100, 220), UDim2.new(1, -70, 0, 5), UDim2.new(0, 30, 0, 30), "darken")
     end
     
     if options.ShowClose ~= false then
-        CloseBtn = self:CreateButton(Header, "X", nil, options.CloseColor or Color3.fromRGB(255, 100, 100), UDim2.new(1, -35 * scale, 0, 5 * scale), UDim2.new(0, 30 * scale, 0, 30 * scale), "darken")
+        CloseBtn = self:CreateButton(Header, "X", nil, options.CloseColor or Color3.fromRGB(255, 100, 100), UDim2.new(1, -35, 0, 5), UDim2.new(0, 30, 0, 30), "darken")
         CloseBtn.MouseButton1Click:Connect(function() 
             ScreenGui:Destroy() 
         end)
@@ -317,7 +307,7 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     local dragging, dragInput, dragStart, startPos
     
     Header.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if not isMobile and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
             dragging = true
             dragStart = input.Position
             startPos = Main.Position
@@ -330,13 +320,13 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     end)
     
     Header.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if not isMobile and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             dragInput = input
         end
     end)
     
     UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
+        if not isMobile and input == dragInput and dragging then
             local delta = input.Position - dragStart
             Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
@@ -350,26 +340,19 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         SettingsBtn = SettingsBtn,
         CloseBtn = CloseBtn,
         elements = {},
-        scale = scale
+        scale = 1
     }
     
     function window:CreateFrame(size, position, color, radius)
-        local frameSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
-        local framePos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
-        return YUUGTRL:CreateFrame(self.Main, frameSize, framePos, color, radius and radius * self.scale)
+        return YUUGTRL:CreateFrame(self.Main, size, position, color, radius)
     end
     
     function window:CreateScrollingFrame(size, position, color, radius)
-        local frameSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
-        local framePos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
-        return YUUGTRL:CreateScrollingFrame(self.Main, frameSize, framePos, color, radius and radius * self.scale)
+        return YUUGTRL:CreateScrollingFrame(self.Main, size, position, color, radius)
     end
     
     function window:CreateLabel(text, position, size, color, translationKey)
-        local labelPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
-        local labelSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
-        local label = YUUGTRL:CreateLabel(self.Main, text, labelPos, labelSize, color)
-        label.TextSize = label.TextSize * self.scale
+        local label = YUUGTRL:CreateLabel(self.Main, text, position, size, color)
         if translationKey then
             YUUGTRL:RegisterTranslatable(label, translationKey)
         end
@@ -377,10 +360,7 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     end
     
     function window:CreateButton(text, callback, color, position, size, style, translationKey)
-        local btnPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
-        local btnSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
-        local btn = YUUGTRL:CreateButton(self.Main, text, callback, color, btnPos, btnSize, style)
-        btn.TextSize = btn.TextSize * self.scale
+        local btn = YUUGTRL:CreateButton(self.Main, text, callback, color, position, size, style)
         if translationKey then
             YUUGTRL:RegisterTranslatable(btn, translationKey)
         end
@@ -388,15 +368,11 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     end
     
     function window:CreateToggle(text, default, callback, color, position, size, translationKey)
-        local togglePos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
-        local toggleSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
-        return YUUGTRL:CreateToggle(self.Main, text, default, callback, color, togglePos, toggleSize)
+        return YUUGTRL:CreateToggle(self.Main, text, default, callback, color, position, size)
     end
     
     function window:CreateSlider(text, min, max, default, callback, position, size)
-        local sliderPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
-        local sliderSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
-        return YUUGTRL:CreateSlider(self.Main, text, min, max, default, callback, sliderPos, sliderSize)
+        return YUUGTRL:CreateSlider(self.Main, text, min, max, default, callback, position, size)
     end
     
     function window:SetSettingsCallback(callback)
