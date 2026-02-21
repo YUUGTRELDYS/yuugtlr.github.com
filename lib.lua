@@ -473,10 +473,13 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         YUUGTRL:UpdateAllTexts()
     end
     
+    -- ИСПРАВЛЕННЫЙ МЕТОД CreateButtonToggle
     function window:CreateButtonToggle(text, default, callback, position, size, colors, translationKey)
-        local btnPos = position
-        local btnSize = size
+        -- Правильно применяем масштабирование к позиции и размеру
+        local btnPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
+        local btnSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
         
+        -- Создаем тоггл с правильным родителем (self.Main)
         local toggle = YUUGTRL:CreateButtonToggle(self.Main, text, default, callback, btnPos, btnSize, colors)
         
         if translationKey then
