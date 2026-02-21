@@ -238,47 +238,6 @@ function YUUGTRL:MakeButton(button, color, style)
         button.MouseLeave:Connect(function() 
             self:RestoreButtonStyle(button, btnColor) 
         end)
-    elseif btnStyle == "toggle" then
-        button.MouseButton1Click:Connect(function()
-            toggled = not toggled
-            if toggled then
-                self:ApplyButtonStyle(button, toggledColor)
-                button.BackgroundColor3 = toggledColor
-            else
-                self:ApplyButtonStyle(button, originalColor)
-                button.BackgroundColor3 = originalColor
-            end
-            if button.ToggleCallback then
-                button.ToggleCallback(toggled)
-            end
-        end)
-        
-        function button:SetToggleState(state)
-            toggled = state
-            if toggled then
-                self:ApplyButtonStyle(button, toggledColor)
-                button.BackgroundColor3 = toggledColor
-            else
-                self:ApplyButtonStyle(button, originalColor)
-                button.BackgroundColor3 = originalColor
-            end
-        end
-        
-        function button:SetToggleCallback(callback)
-            button.ToggleCallback = callback
-        end
-        
-        function button:SetToggleColors(onColor, offColor)
-            toggledColor = onColor or toggledColor
-            originalColor = offColor or originalColor
-            if toggled then
-                self:ApplyButtonStyle(button, toggledColor)
-                button.BackgroundColor3 = toggledColor
-            else
-                self:ApplyButtonStyle(button, originalColor)
-                button.BackgroundColor3 = originalColor
-            end
-        end
     end
     
     return button
@@ -465,18 +424,27 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     end
     
     function window:CreateToggle(text, default, callback, color, position, size, translationKey)
-        local togglePos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
-        local toggleSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
-        local toggleBtn = YUUGTRL:CreateButton(self.Main, text, nil, color, togglePos, toggleSize, "toggle")
+        local frame = self:CreateFrame(self.Main, size or UDim2.new(0, 200, 0, 35), position, Color3.fromRGB(45, 45, 55), 8)
+        
+        local label = self:CreateLabel(frame, text, UDim2.new(0, 10, 0, 0), UDim2.new(1, -50, 1, 0))
         if translationKey then
-            YUUGTRL:RegisterTranslatable(toggleBtn, translationKey)
+            YUUGTRL:RegisterTranslatable(label, translationKey)
         end
-        if callback then
-            toggleBtn:SetToggleCallback(callback)
-        end
-        if default then
-            toggleBtn:SetToggleState(default)
-        end
+        
+        local toggleColor = default and Color3.fromRGB(80, 220, 100) or Color3.fromRGB(220, 80, 80)
+        local toggleBtn = self:CreateButton(frame, "", nil, toggleColor, UDim2.new(1, -40, 0, 2.5), UDim2.new(0, 30, 0, 30), "darken")
+        Create({type = "UICorner",CornerRadius = UDim.new(0, 15),Parent = toggleBtn})
+        
+        local toggled = default or false
+        
+        toggleBtn.MouseButton1Click:Connect(function()
+            toggled = not toggled
+            local newColor = toggled and Color3.fromRGB(80, 220, 100) or Color3.fromRGB(220, 80, 80)
+            toggleBtn.BackgroundColor3 = newColor
+            self:ApplyButtonStyle(toggleBtn, newColor)
+            if callback then callback(toggled) end
+        end)
+        
         return toggleBtn
     end
     
@@ -581,7 +549,7 @@ function YUUGTRL:CreateButton(parent, text, callback, color, position, size, sty
     Create({type = "UICorner",CornerRadius = UDim.new(0, 8),Parent = btn})
     self:MakeButton(btn, color, style)
     
-    if callback and style ~= "toggle" then
+    if callback then
         btn.MouseButton1Click:Connect(callback)
     end
     
