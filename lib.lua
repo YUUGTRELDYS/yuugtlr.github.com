@@ -6,15 +6,14 @@ local player = Players.LocalPlayer
 local isMobile = UserInputService.TouchEnabled
 local viewportSize = workspace.CurrentCamera.ViewportSize
 
--- Определяем масштаб в зависимости от размера экрана
 local scale = 1
 if isMobile then
     if viewportSize.X < 600 then
-        scale = 0.65 -- Маленькие телефоны
+        scale = 0.65
     elseif viewportSize.X < 800 then
-        scale = 0.75 -- Средние телефоны
+        scale = 0.75
     else
-        scale = 0.85 -- Большие телефоны/планшеты
+        scale = 0.85
     end
 end
 
@@ -25,12 +24,11 @@ splash.DisplayOrder = 9999
 splash.ResetOnSpawn = false
 splash.Parent = player:WaitForChild("PlayerGui")
 
--- Заставка адаптируется под экран
 local splashWidth = 220 * scale
 local splashHeight = 60 * scale
 local splashFrame = Instance.new("Frame")
 splashFrame.Size = UDim2.new(0, splashWidth, 0, splashHeight)
-splashFrame.Position = UDim2.new(1, -splashWidth - 20, 0, 20) -- Появляется справа сверху
+splashFrame.Position = UDim2.new(1, -splashWidth - 20, 0, 20)
 splashFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 splashFrame.BackgroundTransparency = 0.2
 splashFrame.BorderSizePixel = 0
@@ -70,7 +68,6 @@ loaded.TextSize = 16 * scale
 loaded.TextXAlignment = Enum.TextXAlignment.Left
 loaded.Parent = splashFrame
 
--- Анимация появления
 splashFrame:TweenPosition(UDim2.new(1, -splashWidth - 20, 0, 20), "Out", "Quad", 0.3, true)
 
 task.wait(0.2)
@@ -252,7 +249,6 @@ end
 function YUUGTRL:CreateWindow(title, size, position, options)
     options = options or {}
     
-    -- Получаем размер экрана и вычисляем масштаб
     local screenSize = workspace.CurrentCamera.ViewportSize
     local scale = 1
     if isMobile then
