@@ -155,7 +155,7 @@ local function Create(props)
     return obj
 end
 
-function YUUGTRL:CreateButton(parent, text, callback, color, position, size, style)
+function YUUGTRL:CreateButton(parent, text, callback, color, position, size)
     if not parent then return end
     
     local btnColor = color or Color3.fromRGB(60, 100, 200)
@@ -219,26 +219,6 @@ function YUUGTRL:CreateButton(parent, text, callback, color, position, size, sty
             ColorSequenceKeypoint.new(0, btnColor),
             ColorSequenceKeypoint.new(1, darker)
         })
-    end)
-    
-    btn.MouseButton1Down:Connect(function()
-        btn:TweenSize(
-            UDim2.new(0, btn.Size.X.Offset - 4, 0, btn.Size.Y.Offset - 4),
-            "Out",
-            "Quad",
-            0.05,
-            true
-        )
-    end)
-    
-    btn.MouseButton1Up:Connect(function()
-        btn:TweenSize(
-            size or UDim2.new(0, 120, 0, 35),
-            "Out",
-            "Quad",
-            0.05,
-            true
-        )
     end)
     
     if callback then
@@ -649,26 +629,6 @@ function YUUGTRL:CreateButtonToggle(parent, text, default, callback, position, s
     
     button.MouseLeave:Connect(function()
         updateGradient()
-    end)
-    
-    button.MouseButton1Down:Connect(function()
-        button:TweenSize(
-            UDim2.new(0, button.Size.X.Offset - 4, 0, button.Size.Y.Offset - 4),
-            "Out",
-            "Quad",
-            0.05,
-            true
-        )
-    end)
-    
-    button.MouseButton1Up:Connect(function()
-        button:TweenSize(
-            size or UDim2.new(0, 120, 0, 35),
-            "Out",
-            "Quad",
-            0.05,
-            true
-        )
     end)
     
     button.MouseButton1Click:Connect(function()
