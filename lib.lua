@@ -507,19 +507,6 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     
     Create({type = "UICorner",CornerRadius = UDim.new(0, 12 * scale),Parent = Header})
     
-    local TabsContainer
-    local TabButtons = {}
-    local TabContents = {}
-    local currentTab = nil
-    local tabsEnabled = options.enableTabs or false
-    
-    if tabsEnabled then
-        TabsContainer = self:CreateFrame(Main, UDim2.new(1, 0, 0, 40 * scale), UDim2.new(0, 0, 0, 40 * scale), currentTheme.HeaderColor, 0)
-        local tabsCorner = Instance.new("UICorner")
-        tabsCorner.CornerRadius = UDim.new(0, 12 * scale)
-        tabsCorner.Parent = TabsContainer
-    end
-    
     local Title = self:CreateLabel(Header, title, UDim2.new(0, 15 * scale, 0, 0), UDim2.new(1, -100 * scale, 1, 0), options.TextColor or currentTheme.TextColor)
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.TextSize = 18 * scale
@@ -527,12 +514,7 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         self:RegisterTranslatable(Title, options.titleKey)
     end
     
-    local Content
-    if tabsEnabled then
-        Content = self:CreateFrame(Main, UDim2.new(1, 0, 1, -(80 * scale)), UDim2.new(0, 0, 0, 80 * scale), currentTheme.MainColor, 0)
-    else
-        Content = self:CreateFrame(Main, UDim2.new(1, 0, 1, -(40 * scale)), UDim2.new(0, 0, 0, 40 * scale), currentTheme.MainColor, 0)
-    end
+    local Content = self:CreateFrame(Main, UDim2.new(1, 0, 1, -(40 * scale)), UDim2.new(0, 0, 0, 40 * scale), currentTheme.MainColor, 0)
     
     local SettingsBtn
     local CloseBtn
@@ -586,68 +568,8 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         elements = {},
         scale = scale,
         options = options,
-        tabsEnabled = tabsEnabled,
-        TabsContainer = TabsContainer,
-        Content = Content,
-        TabButtons = TabButtons,
-        TabContents = TabContents
+        Content = Content
     }
-    
-    function window:AddTab(name, callback)
-        if not self.tabsEnabled then
-            warn("Табы не включены. Установите options.enableTabs = true при создании окна.")
-            return nil
-        end
-        
-        local tabIndex = #self.TabButtons + 1
-        
-        local tabButton = self:CreateButton(self.TabsContainer, name, function()
-            if currentTab == tabIndex then return end
-            
-            for i, btn in ipairs(self.TabButtons) do
-                if i == tabIndex then
-                    self:RestoreButtonStyle(btn, currentTheme.AccentColor)
-                else
-                    self:DarkenButton(btn)
-                end
-            end
-            
-            if self.TabContents[currentTab] then
-                self.TabContents[currentTab].Visible = false
-            end
-            
-            if not self.TabContents[tabIndex] then
-                local tabContent = self:CreateFrame(self.Content, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), currentTheme.MainColor, 0)
-                self.TabContents[tabIndex] = tabContent
-                if callback then
-                    callback(tabContent)
-                end
-            end
-            
-            self.TabContents[tabIndex].Visible = true
-            currentTab = tabIndex
-        end, nil, UDim2.new(0, (100 * (tabIndex-1)) * scale, 0, 5 * scale), UDim2.new(0, 100 * scale, 0, 30 * scale))
-        
-        table.insert(self.TabButtons, tabButton)
-        
-        if tabIndex == 1 then
-            self:RestoreButtonStyle(tabButton, currentTheme.AccentColor)
-            if callback then
-                local tabContent = self:CreateFrame(self.Content, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), currentTheme.MainColor, 0)
-                self.TabContents[tabIndex] = tabContent
-                callback(tabContent)
-                currentTab = tabIndex
-                tabContent.Visible = true
-            end
-        else
-            self:DarkenButton(tabButton)
-            if self.TabContents[tabIndex] then
-                self.TabContents[tabIndex].Visible = false
-            end
-        end
-        
-        return tabButton
-    end
     
     function window:SetMainColor(color)
         self.Main.BackgroundColor3 = color
