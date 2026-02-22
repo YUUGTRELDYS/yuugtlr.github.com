@@ -1,4 +1,4 @@
-# yuugtlr.github.com
+YUUGTRL Library
 # YUUGTRL Library - Very Small Guide
 
 ## 📦 Installation
