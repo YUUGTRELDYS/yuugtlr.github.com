@@ -495,9 +495,7 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         Parent = ScreenGui
     })
     
-    local mainCorner = Instance.new("UICorner")
-    mainCorner.CornerRadius = UDim.new(0, 12 * scale)
-    mainCorner.Parent = Main
+    Create({type = "UICorner",CornerRadius = UDim.new(0, 12 * scale),Parent = Main})
     
     local Header = Create({
         type = "Frame",
@@ -507,34 +505,13 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         Parent = Main
     })
     
-    local headerCorner = Instance.new("UICorner")
-    headerCorner.CornerRadius = UDim.new(0, 12 * scale)
-    headerCorner.Parent = Header
-    
-    local TabsContainer = Instance.new("Frame")
-    TabsContainer.Size = UDim2.new(1, 0, 0, 40 * scale)
-    TabsContainer.Position = UDim2.new(0, 0, 0, 40 * scale)
-    TabsContainer.BackgroundColor3 = options.HeaderColor or currentTheme.HeaderColor
-    TabsContainer.BorderSizePixel = 0
-    TabsContainer.Parent = Main
-    TabsContainer.Visible = false
-    
-    local tabsCorner = Instance.new("UICorner")
-    tabsCorner.CornerRadius = UDim.new(0, 12 * scale)
-    tabsCorner.Parent = TabsContainer
+    Create({type = "UICorner",CornerRadius = UDim.new(0, 12 * scale),Parent = Header})
     
     local Title = self:CreateLabel(Header, title, UDim2.new(0, 15 * scale, 0, 0), UDim2.new(1, -100 * scale, 1, 0), options.TextColor or currentTheme.TextColor)
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.TextSize = 18 * scale
     if options.titleKey then
         self:RegisterTranslatable(Title, options.titleKey)
-    end
-    
-    local Content
-    if TabsContainer.Visible then
-        Content = self:CreateFrame(Main, UDim2.new(1, 0, 1, -(120 * scale)), UDim2.new(0, 0, 0, 80 * scale), currentTheme.MainColor, 0)
-    else
-        Content = self:CreateFrame(Main, UDim2.new(1, 0, 1, -(40 * scale)), UDim2.new(0, 0, 0, 40 * scale), currentTheme.MainColor, 0)
     end
     
     local SettingsBtn
@@ -588,90 +565,8 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         CloseBtn = CloseBtn,
         elements = {},
         scale = scale,
-        options = options,
-        TabsContainer = TabsContainer,
-        Content = Content,
-        TabButtons = {},
-        TabContents = {},
-        currentTab = nil,
-        tabsEnabled = false
+        options = options
     }
-    
-    function window:EnableTabs()
-        self.tabsEnabled = true
-        self.TabsContainer.Visible = true
-        self.Content.Position = UDim2.new(0, 0, 0, 80 * self.scale)
-        self.Content.Size = UDim2.new(1, 0, 1, -(120 * self.scale))
-    end
-    
-    function window:DisableTabs()
-        self.tabsEnabled = false
-        self.TabsContainer.Visible = false
-        self.Content.Position = UDim2.new(0, 0, 0, 40 * self.scale)
-        self.Content.Size = UDim2.new(1, 0, 1, -(40 * self.scale))
-        
-        for _, btn in pairs(self.TabButtons) do
-            btn.Visible = false
-        end
-        for _, content in pairs(self.TabContents) do
-            content.Visible = false
-        end
-    end
-    
-    function window:AddTab(name, callback)
-        if not self.tabsEnabled then
-            warn("Tabs are not enabled. Call window:EnableTabs() first.")
-            return nil
-        end
-        
-        local tabIndex = #self.TabButtons + 1
-        local tabButton = self:CreateButton(self.TabsContainer, name, function()
-            if self.currentTab == tabIndex then return end
-            
-            for i, btn in ipairs(self.TabButtons) do
-                if i == tabIndex then
-                    self:RestoreButtonStyle(btn, currentTheme.AccentColor)
-                else
-                    self:DarkenButton(btn)
-                end
-            end
-            
-            if self.TabContents[self.currentTab] then
-                self.TabContents[self.currentTab].Visible = false
-            end
-            
-            if not self.TabContents[tabIndex] then
-                local tabContent = self:CreateFrame(self.Content, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), currentTheme.MainColor, 0)
-                self.TabContents[tabIndex] = tabContent
-                if callback then
-                    callback(tabContent)
-                end
-            end
-            
-            self.TabContents[tabIndex].Visible = true
-            self.currentTab = tabIndex
-        end, nil, UDim2.new(0, (100 * (tabIndex-1)) * self.scale, 0, 5 * self.scale), UDim2.new(0, 100 * self.scale, 0, 30 * self.scale))
-        
-        table.insert(self.TabButtons, tabButton)
-        
-        if tabIndex == 1 then
-            self:RestoreButtonStyle(tabButton, currentTheme.AccentColor)
-            if callback then
-                local tabContent = self:CreateFrame(self.Content, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), currentTheme.MainColor, 0)
-                self.TabContents[tabIndex] = tabContent
-                callback(tabContent)
-                self.currentTab = tabIndex
-                tabContent.Visible = true
-            end
-        else
-            self:DarkenButton(tabButton)
-            if self.TabContents[tabIndex] then
-                self.TabContents[tabIndex].Visible = false
-            end
-        end
-        
-        return tabButton
-    end
     
     function window:SetMainColor(color)
         self.Main.BackgroundColor3 = color
@@ -701,29 +596,24 @@ function YUUGTRL:CreateWindow(title, size, position, options)
                 v.CornerRadius = UDim.new(0, radius * self.scale)
             end
         end
-        for _, v in pairs(self.TabsContainer:GetChildren()) do
-            if v:IsA("UICorner") then
-                v.CornerRadius = UDim.new(0, radius * self.scale)
-            end
-        end
     end
     
     function window:CreateFrame(size, position, color, radius)
         local frameSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
         local framePos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
-        return YUUGTRL:CreateFrame(self.Content, frameSize, framePos, color, radius and radius * self.scale)
+        return YUUGTRL:CreateFrame(self.Main, frameSize, framePos, color, radius and radius * self.scale)
     end
     
     function window:CreateScrollingFrame(size, position, color, radius)
         local frameSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
         local framePos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
-        return YUUGTRL:CreateScrollingFrame(self.Content, frameSize, framePos, color, radius and radius * self.scale)
+        return YUUGTRL:CreateScrollingFrame(self.Main, frameSize, framePos, color, radius and radius * self.scale)
     end
     
     function window:CreateLabel(text, position, size, color, translationKey)
         local labelPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
         local labelSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
-        local label = YUUGTRL:CreateLabel(self.Content, text, labelPos, labelSize, color)
+        local label = YUUGTRL:CreateLabel(self.Main, text, labelPos, labelSize, color)
         label.TextSize = label.TextSize * self.scale
         if translationKey then
             YUUGTRL:RegisterTranslatable(label, translationKey)
@@ -735,7 +625,7 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     function window:CreateButton(text, callback, color, position, size, translationKey)
         local btnPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
         local btnSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
-        local btn = YUUGTRL:CreateButton(self.Content, text, callback, color, btnPos, btnSize)
+        local btn = YUUGTRL:CreateButton(self.Main, text, callback, color, btnPos, btnSize)
         btn.TextSize = btn.TextSize * self.scale
         if translationKey then
             YUUGTRL:RegisterTranslatable(btn, translationKey)
@@ -747,7 +637,7 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     function window:CreateSlider(text, min, max, default, callback, position, size)
         local sliderPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
         local sliderSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
-        return YUUGTRL:CreateSlider(self.Content, text, min, max, default, callback, sliderPos, sliderSize)
+        return YUUGTRL:CreateSlider(self.Main, text, min, max, default, callback, sliderPos, sliderSize)
     end
     
     function window:SetSettingsCallback(callback)
@@ -781,7 +671,7 @@ function YUUGTRL:CreateWindow(title, size, position, options)
             btnSize = UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale)
         end
         
-        local toggle = YUUGTRL:CreateButtonToggle(self.Content, text, default, callback, btnPos, btnSize, colors)
+        local toggle = YUUGTRL:CreateButtonToggle(self.Main, text, default, callback, btnPos, btnSize, colors)
         
         if translationKey and toggle and toggle.button then
             YUUGTRL:RegisterTranslatable(toggle.button, translationKey)
