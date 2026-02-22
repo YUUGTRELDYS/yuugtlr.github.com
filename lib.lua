@@ -8,7 +8,7 @@ local viewportSize = workspace.CurrentCamera.ViewportSize
 
 local scale = 1
 if isMobile then
-    scale = math.min(viewportSize.X / 500, 0.9)
+    scale = math.min(viewportSize.X / 500, 1)
 end
 
 local splash = Instance.new("ScreenGui")
