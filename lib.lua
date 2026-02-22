@@ -96,30 +96,63 @@ end)
 local languages = {}
 local currentLanguage = "English"
 local translatableElements = {}
-local currentTheme = {
-    MainColor = Color3.fromRGB(30, 30, 40),
-    HeaderColor = Color3.fromRGB(40, 40, 50),
-    TextColor = Color3.fromRGB(255, 255, 255),
-    AccentColor = Color3.fromRGB(80, 100, 220),
-    ButtonColor = Color3.fromRGB(60, 100, 200),
-    FrameColor = Color3.fromRGB(35, 35, 45),
-    InputColor = Color3.fromRGB(40, 40, 50),
-    ScrollBarColor = Color3.fromRGB(100, 100, 150),
-    DangerColor = Color3.fromRGB(255, 100, 100),
-    SuccessColor = Color3.fromRGB(100, 255, 100),
-    WarningColor = Color3.fromRGB(255, 200, 100)
+local themes = {
+    dark = {
+        MainColor = Color3.fromRGB(30, 30, 40),
+        HeaderColor = Color3.fromRGB(40, 40, 50),
+        TextColor = Color3.fromRGB(255, 255, 255),
+        AccentColor = Color3.fromRGB(80, 100, 220),
+        ButtonColor = Color3.fromRGB(60, 100, 200),
+        FrameColor = Color3.fromRGB(35, 35, 45),
+        InputColor = Color3.fromRGB(40, 40, 50),
+        ScrollBarColor = Color3.fromRGB(100, 100, 150),
+        DangerColor = Color3.fromRGB(255, 100, 100),
+        SuccessColor = Color3.fromRGB(100, 255, 100),
+        WarningColor = Color3.fromRGB(255, 200, 100)
+    },
+    light = {
+        MainColor = Color3.fromRGB(240, 240, 245),
+        HeaderColor = Color3.fromRGB(230, 230, 235),
+        TextColor = Color3.fromRGB(0, 0, 0),
+        AccentColor = Color3.fromRGB(0, 120, 215),
+        ButtonColor = Color3.fromRGB(0, 120, 215),
+        FrameColor = Color3.fromRGB(220, 220, 225),
+        InputColor = Color3.fromRGB(255, 255, 255),
+        ScrollBarColor = Color3.fromRGB(150, 150, 150),
+        DangerColor = Color3.fromRGB(255, 80, 80),
+        SuccessColor = Color3.fromRGB(80, 200, 80),
+        WarningColor = Color3.fromRGB(255, 180, 80)
+    },
+    purple = {
+        MainColor = Color3.fromRGB(35, 25, 45),
+        HeaderColor = Color3.fromRGB(45, 35, 55),
+        TextColor = Color3.fromRGB(255, 255, 255),
+        AccentColor = Color3.fromRGB(170, 85, 255),
+        ButtonColor = Color3.fromRGB(140, 70, 250),
+        FrameColor = Color3.fromRGB(40, 30, 50),
+        InputColor = Color3.fromRGB(50, 40, 60),
+        ScrollBarColor = Color3.fromRGB(150, 100, 200),
+        DangerColor = Color3.fromRGB(255, 100, 100),
+        SuccessColor = Color3.fromRGB(100, 255, 100),
+        WarningColor = Color3.fromRGB(255, 200, 100)
+    }
 }
+local currentTheme = themes.dark
+
+function YUUGTRL:SetTheme(themeName)
+    if themes[themeName] then
+        currentTheme = themes[themeName]
+        return true
+    end
+    return false
+end
 
 function YUUGTRL:GetTheme()
     return currentTheme
 end
 
-function YUUGTRL:UpdateThemeColor(colorName, colorValue)
-    if currentTheme[colorName] then
-        currentTheme[colorName] = colorValue
-        return true
-    end
-    return false
+function YUUGTRL:AddTheme(name, themeTable)
+    themes[name] = themeTable
 end
 
 function YUUGTRL:AddLanguage(name, translations)
@@ -973,6 +1006,19 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     headerCorner.CornerRadius = UDim.new(0, 12 * scale)
     headerCorner.Parent = Header
     
+    local TabsContainer
+    local TabButtons = {}
+    local TabContents = {}
+    local currentTab = nil
+    local tabsEnabled = options.enableTabs or false
+    
+    if tabsEnabled then
+        TabsContainer = self:CreateFrame(Main, UDim2.new(1, 0, 0, 40 * scale), UDim2.new(0, 0, 0, 40 * scale), currentTheme.HeaderColor, 0)
+        local tabsCorner = Instance.new("UICorner")
+        tabsCorner.CornerRadius = UDim.new(0, 12 * scale)
+        tabsCorner.Parent = TabsContainer
+    end
+    
     local Title = self:CreateLabel(Header, title, UDim2.new(0, 15 * scale, 0, 0), UDim2.new(1, -100 * scale, 1, 0), options.TextColor or currentTheme.TextColor)
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.TextSize = 18 * scale
@@ -980,7 +1026,7 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         self:RegisterTranslatable(Title, options.titleKey)
     end
     
-    local Content = self:CreateFrame(Main, UDim2.new(1, 0, 1, -(40 * scale)), UDim2.new(0, 0, 0, 40 * scale), currentTheme.MainColor, 12 * scale)
+    local Content = self:CreateFrame(Main, UDim2.new(1, 0, 1, -(80 * scale)), UDim2.new(0, 0, 0, 80 * scale), currentTheme.MainColor, 0)
     
     local SettingsBtn
     local CloseBtn
@@ -1034,8 +1080,64 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         elements = {},
         scale = scale,
         options = options,
-        Content = Content
+        tabsEnabled = tabsEnabled,
+        TabsContainer = TabsContainer,
+        Content = Content,
+        TabButtons = TabButtons,
+        TabContents = TabContents
     }
+    
+    function window:AddTab(name, callback)
+        if not self.tabsEnabled then
+            warn("Tabs are not enabled for this window. Set options.enableTabs = true when creating window.")
+            return nil
+        end
+        
+        local tabIndex = #self.TabButtons + 1
+        
+        local tabButton = self:CreateButton(self.TabsContainer, name, function()
+            if currentTab == tabIndex then return end
+            
+            for i, btn in ipairs(self.TabButtons) do
+                if i == tabIndex then
+                    self:RestoreButtonStyle(btn, currentTheme.AccentColor)
+                else
+                    self:DarkenButton(btn)
+                end
+            end
+            
+            if self.TabContents[currentTab] then
+                self.TabContents[currentTab].Visible = false
+            end
+            
+            if not self.TabContents[tabIndex] then
+                local tabContent = self:CreateFrame(self.Content, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), currentTheme.MainColor, 0)
+                self.TabContents[tabIndex] = tabContent
+                if callback then
+                    callback(tabContent)
+                end
+            end
+            
+            self.TabContents[tabIndex].Visible = true
+            currentTab = tabIndex
+        end, nil, UDim2.new(0, (100 * (tabIndex-1)) * scale, 0, 5 * scale), UDim2.new(0, 100 * scale, 0, 30 * scale))
+        
+        table.insert(self.TabButtons, tabButton)
+        
+        if tabIndex == 1 then
+            self:RestoreButtonStyle(tabButton, currentTheme.AccentColor)
+            if callback then
+                local tabContent = self:CreateFrame(self.Content, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), currentTheme.MainColor, 0)
+                self.TabContents[tabIndex] = tabContent
+                callback(tabContent)
+                currentTab = tabIndex
+            end
+        else
+            self:DarkenButton(tabButton)
+        end
+        
+        return tabButton
+    end
     
     function window:SetMainColor(color)
         self.Main.BackgroundColor3 = color
@@ -1061,11 +1163,6 @@ function YUUGTRL:CreateWindow(title, size, position, options)
             end
         end
         for _, v in pairs(self.Header:GetChildren()) do
-            if v:IsA("UICorner") then
-                v.CornerRadius = UDim.new(0, radius * self.scale)
-            end
-        end
-        for _, v in pairs(self.Content:GetChildren()) do
             if v:IsA("UICorner") then
                 v.CornerRadius = UDim.new(0, radius * self.scale)
             end
