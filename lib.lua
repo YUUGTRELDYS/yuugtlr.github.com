@@ -116,6 +116,228 @@ local themes = {
 }
 local currentTheme = themes.dark
 
+local notificationHolder = Instance.new("ScreenGui")
+notificationHolder.Name = "YUUGTRLNotifications"
+notificationHolder.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+notificationHolder.DisplayOrder = 99999
+notificationHolder.ResetOnSpawn = false
+notificationHolder.Parent = player:WaitForChild("PlayerGui")
+
+local notificationList = Instance.new("Frame")
+notificationList.Name = "NotificationList"
+notificationList.Size = UDim2.new(0, 300 * scale, 1, -20 * scale)
+notificationList.Position = UDim2.new(1, -310 * scale, 0, 10 * scale)
+notificationList.BackgroundTransparency = 1
+notificationList.Parent = notificationHolder
+
+local notificationLayout = Instance.new("UIListLayout")
+notificationLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+notificationLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+notificationLayout.SortOrder = Enum.SortOrder.LayoutOrder
+notificationLayout.Padding = UDim.new(0, 6 * scale)
+notificationLayout.Parent = notificationList
+
+function YUUGTRL:Notify(title, message, duration, notifyType)
+    duration = duration or 3
+    notifyType = notifyType or "info"
+    
+    local colors = {
+        info = {
+            main = Color3.fromRGB(80, 100, 220),
+            accent = Color3.fromRGB(100, 120, 255)
+        },
+        success = {
+            main = Color3.fromRGB(60, 180, 100),
+            accent = Color3.fromRGB(80, 220, 120)
+        },
+        error = {
+            main = Color3.fromRGB(220, 70, 70),
+            accent = Color3.fromRGB(255, 100, 100)
+        },
+        warning = {
+            main = Color3.fromRGB(255, 170, 60),
+            accent = Color3.fromRGB(255, 200, 100)
+        }
+    }
+    
+    local colorSet = colors[notifyType] or colors.info
+    
+    local notification = Instance.new("Frame")
+    notification.Name = "Notification"
+    notification.Size = UDim2.new(0, 280 * scale, 0, 0)
+    notification.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    notification.BackgroundTransparency = 0.1
+    notification.BorderSizePixel = 0
+    notification.ClipsDescendants = true
+    notification.Parent = notificationList
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8 * scale)
+    corner.Parent = notification
+    
+    local accentLine = Instance.new("Frame")
+    accentLine.Name = "AccentLine"
+    accentLine.Size = UDim2.new(0, 4 * scale, 1, 0)
+    accentLine.Position = UDim2.new(0, 0, 0, 0)
+    accentLine.BackgroundColor3 = colorSet.accent
+    accentLine.BorderSizePixel = 0
+    accentLine.Parent = notification
+    
+    local accentCorner = Instance.new("UICorner")
+    accentCorner.CornerRadius = UDim.new(0, 8 * scale)
+    accentCorner.Parent = accentLine
+    
+    local icon = Instance.new("TextLabel")
+    icon.Name = "Icon"
+    icon.Size = UDim2.new(0, 30 * scale, 0, 30 * scale)
+    icon.Position = UDim2.new(0, 8 * scale, 0, 8 * scale)
+    icon.BackgroundTransparency = 1
+    icon.TextColor3 = colorSet.accent
+    icon.Font = Enum.Font.GothamBold
+    icon.TextSize = 18 * scale
+    icon.Text = notifyType == "success" and "✓" or notifyType == "error" and "✗" or notifyType == "warning" and "!" or "ℹ"
+    icon.Parent = notification
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Name = "Title"
+    titleLabel.Size = UDim2.new(1, -50 * scale, 0, 18 * scale)
+    titleLabel.Position = UDim2.new(0, 45 * scale, 0, 8 * scale)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title or "Notification"
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 14 * scale
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = notification
+    
+    local messageLabel = Instance.new("TextLabel")
+    messageLabel.Name = "Message"
+    messageLabel.Size = UDim2.new(1, -50 * scale, 0, 0)
+    messageLabel.Position = UDim2.new(0, 45 * scale, 0, 28 * scale)
+    messageLabel.BackgroundTransparency = 1
+    messageLabel.Text = message or ""
+    messageLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    messageLabel.Font = Enum.Font.Gotham
+    messageLabel.TextSize = 12 * scale
+    messageLabel.TextXAlignment = Enum.TextXAlignment.Left
+    messageLabel.TextYAlignment = Enum.TextYAlignment.Top
+    messageLabel.TextWrapped = true
+    messageLabel.RichText = true
+    messageLabel.Parent = notification
+    
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Name = "CloseButton"
+    closeBtn.Size = UDim2.new(0, 20 * scale, 0, 20 * scale)
+    closeBtn.Position = UDim2.new(1, -25 * scale, 0, 8 * scale)
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Text = "×"
+    closeBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextSize = 18 * scale
+    closeBtn.Parent = notification
+    
+    local progressBar = Instance.new("Frame")
+    progressBar.Name = "ProgressBar"
+    progressBar.Size = UDim2.new(1, 0, 0, 2 * scale)
+    progressBar.Position = UDim2.new(0, 0, 1, -2 * scale)
+    progressBar.BackgroundColor3 = colorSet.main
+    progressBar.BorderSizePixel = 0
+    progressBar.Parent = notification
+    
+    local progressCorner = Instance.new("UICorner")
+    progressCorner.CornerRadius = UDim.new(0, 2 * scale)
+    progressCorner.Parent = progressBar
+    
+    local textHeight = messageLabel.TextBounds.Y + 10
+    messageLabel.Size = UDim2.new(1, -50 * scale, 0, textHeight)
+    notification.Size = UDim2.new(0, 280 * scale, 0, textHeight + 45 * scale)
+    
+    notification.Position = UDim2.new(1, 50, 0, 0)
+    notification.BackgroundTransparency = 1
+    accentLine.BackgroundTransparency = 1
+    icon.TextTransparency = 1
+    titleLabel.TextTransparency = 1
+    messageLabel.TextTransparency = 1
+    closeBtn.TextTransparency = 1
+    
+    TweenService:Create(notification, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+        Position = UDim2.new(1, -290 * scale, 0, 0),
+        BackgroundTransparency = 0.1
+    }):Play()
+    
+    TweenService:Create(accentLine, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+        BackgroundTransparency = 0
+    }):Play()
+    
+    TweenService:Create(icon, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+        TextTransparency = 0
+    }):Play()
+    
+    TweenService:Create(titleLabel, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+        TextTransparency = 0
+    }):Play()
+    
+    TweenService:Create(messageLabel, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+        TextTransparency = 0
+    }):Play()
+    
+    TweenService:Create(closeBtn, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+        TextTransparency = 0
+    }):Play()
+    
+    closeBtn.MouseButton1Click:Connect(function()
+        YUUGTRL:HideNotification(notification)
+    end)
+    
+    closeBtn.MouseEnter:Connect(function()
+        closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+    
+    closeBtn.MouseLeave:Connect(function()
+        closeBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+    end)
+    
+    if duration > 0 then
+        local progressTween = TweenService:Create(progressBar, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
+            Size = UDim2.new(0, 0, 0, 2 * scale)
+        })
+        progressTween:Play()
+        
+        task.wait(duration)
+        if notification.Parent then
+            YUUGTRL:HideNotification(notification)
+        end
+    end
+    
+    return notification
+end
+
+function YUUGTRL:HideNotification(notification)
+    if not notification then return end
+    
+    TweenService:Create(notification, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
+        Position = UDim2.new(1, 50, 0, 0),
+        BackgroundTransparency = 1
+    }):Play()
+    
+    for _, v in pairs(notification:GetChildren()) do
+        if v:IsA("TextLabel") or v:IsA("TextButton") then
+            TweenService:Create(v, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
+                TextTransparency = 1
+            }):Play()
+        elseif v:IsA("Frame") and v.Name ~= "ProgressBar" then
+            TweenService:Create(v, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
+                BackgroundTransparency = 1
+            }):Play()
+        end
+    end
+    
+    task.wait(0.2)
+    if notification.Parent then
+        notification:Destroy()
+    end
+end
+
 function YUUGTRL:SetTheme(themeName)
     if themes[themeName] then
         currentTheme = themes[themeName]
@@ -625,163 +847,4 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     function window:CreateButton(text, callback, color, position, size, translationKey)
         local btnPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
         local btnSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
-        local btn = YUUGTRL:CreateButton(self.Main, text, callback, color, btnPos, btnSize)
-        btn.TextSize = btn.TextSize * self.scale
-        if translationKey then
-            YUUGTRL:RegisterTranslatable(btn, translationKey)
-        end
-        table.insert(self.elements, {type = "button", obj = btn})
-        return btn
-    end
-    
-    function window:CreateSlider(text, min, max, default, callback, position, size)
-        local sliderPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
-        local sliderSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
-        return YUUGTRL:CreateSlider(self.Main, text, min, max, default, callback, sliderPos, sliderSize)
-    end
-    
-    function window:SetSettingsCallback(callback)
-        if SettingsBtn then
-            SettingsBtn.MouseButton1Click:Connect(callback)
-        end
-    end
-    
-    function window:SetCloseCallback(callback)
-        if CloseBtn then
-            CloseBtn.MouseButton1Click:Connect(callback)
-        end
-    end
-    
-    function window:Destroy()
-        ScreenGui:Destroy()
-    end
-    
-    function window:UpdateLanguage()
-        YUUGTRL:UpdateAllTexts()
-    end
-    
-    function window:CreateButtonToggle(text, default, callback, position, size, colors, translationKey)
-        local btnPos = position
-        if btnPos then
-            btnPos = UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale)
-        end
-        
-        local btnSize = size
-        if btnSize then
-            btnSize = UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale)
-        end
-        
-        local toggle = YUUGTRL:CreateButtonToggle(self.Main, text, default, callback, btnPos, btnSize, colors)
-        
-        if translationKey and toggle and toggle.button then
-            YUUGTRL:RegisterTranslatable(toggle.button, translationKey)
-        end
-        
-        if toggle and toggle.button then
-            table.insert(self.elements, {type = "button-toggle", obj = toggle})
-        end
-        
-        return toggle
-    end
-    
-    return window
-end
-
-function YUUGTRL:CreateFrame(parent, size, position, color, radius)
-    if not parent then return end
-    local frame = Create({
-        type = "Frame",
-        Size = size or UDim2.new(0, 100 * scale, 0, 100 * scale),
-        Position = position or UDim2.new(0, 0, 0, 0),
-        BackgroundColor3 = color or currentTheme.FrameColor,
-        BorderSizePixel = 0,
-        Parent = parent
-    })
-    
-    Create({type = "UICorner",CornerRadius = UDim.new(0, radius or 12 * scale),Parent = frame})
-    
-    return frame
-end
-
-function YUUGTRL:CreateScrollingFrame(parent, size, position, color, radius)
-    if not parent then return end
-    local frame = Instance.new("ScrollingFrame")
-    frame.Size = size or UDim2.new(0, 200 * scale, 0, 200 * scale)
-    frame.Position = position or UDim2.new(0, 0, 0, 0)
-    frame.BackgroundColor3 = color or currentTheme.FrameColor
-    frame.BackgroundTransparency = 0
-    frame.BorderSizePixel = 0
-    frame.ScrollBarThickness = 4 * scale
-    frame.ScrollBarImageColor3 = currentTheme.ScrollBarColor
-    frame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    frame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    frame.Parent = parent
-    
-    if radius then
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, radius or 12 * scale)
-        corner.Parent = frame
-    end
-    
-    return frame
-end
-
-function YUUGTRL:CreateLabel(parent, text, position, size, color)
-    if not parent then return end
-    return Create({
-        type = "TextLabel",
-        Size = size or UDim2.new(0, 100 * scale, 0, 30 * scale),
-        Position = position or UDim2.new(0, 0, 0, 0),
-        BackgroundTransparency = 1,
-        Text = text or "Label",
-        TextColor3 = color or currentTheme.TextColor,
-        Font = Enum.Font.GothamBold,
-        TextSize = 14 * scale,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = parent
-    })
-end
-
-function YUUGTRL:CreateSlider(parent, text, min, max, default, callback, position, size)
-    if not parent then return end
-    local frame = self:CreateFrame(parent, size or UDim2.new(0, 200 * scale, 0, 50 * scale), position, currentTheme.FrameColor, 8 * scale)
-    
-    self:CreateLabel(frame, text or "", UDim2.new(0, 10 * scale, 0, 5 * scale), UDim2.new(1, -60 * scale, 0, 20 * scale))
-    
-    local valueLabel = self:CreateLabel(frame, tostring(default or 0), UDim2.new(1, -50 * scale, 0, 5 * scale), UDim2.new(0, 40 * scale, 0, 20 * scale))
-    valueLabel.TextXAlignment = Enum.TextXAlignment.Right
-    
-    local slider = self:CreateFrame(frame, UDim2.new(1, -20 * scale, 0, 8 * scale), UDim2.new(0, 10 * scale, 0, 30 * scale), Color3.fromRGB(60, 60, 70), 4 * scale)
-    
-    local fill = self:CreateFrame(slider, UDim2.new((default or 0) / max, 0, 1, 0), UDim2.new(0, 0, 0, 0), currentTheme.AccentColor, 4 * scale)
-    
-    local dragging = false
-    
-    slider.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-        end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local pos = input.Position.X - slider.AbsolutePosition.X
-            local size = slider.AbsoluteSize.X
-            local percent = math.clamp(pos / size, 0, 1)
-            local value = math.floor(min + (max - min) * percent)
-            fill.Size = UDim2.new(percent, 0, 1, 0)
-            valueLabel.Text = tostring(value)
-            if callback then pcall(callback, value) end
-        end
-    end)
-    
-    return slider
-end
-
-return YUUGTRL
+        local btn = YUUGTRL:CreateButton(self.Main, text, callback,
