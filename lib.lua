@@ -19,71 +19,66 @@ splash.DisplayOrder = 9999
 splash.ResetOnSpawn = false
 splash.Parent = player:WaitForChild("PlayerGui")
 
-local splashWidth = 220 * scale
-local splashHeight = 60 * scale
+local splashWidth = 200 * scale
+local splashHeight = 50 * scale
 local splashFrame = Instance.new("Frame")
 splashFrame.Size = UDim2.new(0, splashWidth, 0, splashHeight)
-splashFrame.Position = UDim2.new(1, -splashWidth - 20, 0, 20)
-splashFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-splashFrame.BackgroundTransparency = 0.15
+splashFrame.Position = UDim2.new(1, -splashWidth - 15, 0, 15)
+splashFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+splashFrame.BackgroundTransparency = 0.2
 splashFrame.BorderSizePixel = 0
 splashFrame.Parent = splash
 
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 14 * scale)
+corner.CornerRadius = UDim.new(0, 10 * scale)
 corner.Parent = splashFrame
 
 local gradient = Instance.new("UIGradient")
 gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 35)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 20))
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 40)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 25))
 })
 gradient.Rotation = 90
 gradient.Parent = splashFrame
 
 local logo = Instance.new("TextLabel")
-logo.Size = UDim2.new(0.6, -8 * scale, 1, 0)
-logo.Position = UDim2.new(0, 12 * scale, 0, 0)
+logo.Size = UDim2.new(0.6, -5 * scale, 1, 0)
+logo.Position = UDim2.new(0, 8 * scale, 0, 0)
 logo.BackgroundTransparency = 1
 logo.Text = "YUUGTRL"
 logo.TextColor3 = Color3.fromRGB(255, 255, 255)
 logo.Font = Enum.Font.GothamBold
-logo.TextSize = 26 * scale
+logo.TextSize = 22 * scale
 logo.TextXAlignment = Enum.TextXAlignment.Left
-logo.TextTransparency = 0.3
 logo.Parent = splashFrame
 
 local loaded = Instance.new("TextLabel")
-loaded.Size = UDim2.new(0.4, -8 * scale, 1, 0)
+loaded.Size = UDim2.new(0.4, -5 * scale, 1, 0)
 loaded.Position = UDim2.new(0.6, 0, 0, 0)
 loaded.BackgroundTransparency = 1
 loaded.Text = "loaded"
-loaded.TextColor3 = Color3.fromRGB(200, 200, 255)
+loaded.TextColor3 = Color3.fromRGB(255, 255, 255)
 loaded.Font = Enum.Font.Gotham
-loaded.TextSize = 16 * scale
+loaded.TextSize = 14 * scale
 loaded.TextXAlignment = Enum.TextXAlignment.Left
-loaded.TextTransparency = 0.3
 loaded.Parent = splashFrame
 
-splashFrame:TweenPosition(UDim2.new(1, -splashWidth - 20, 0, 20), "Out", "Quad", 0.4, true)
+splashFrame:TweenPosition(UDim2.new(1, -splashWidth - 15, 0, 15), "Out", "Quad", 0.3, true)
 
-TweenService:Create(logo, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
-TweenService:Create(loaded, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
+task.wait(0.2)
 
-task.wait(0.3)
-
-local textColorTween = TweenService:Create(logo, TweenInfo.new(1.2, Enum.EasingStyle.Quad), {TextColor3 = Color3.fromRGB(180, 100, 255)})
+local textColorTween = TweenService:Create(logo, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {TextColor3 = Color3.fromRGB(170, 85, 255)})
 textColorTween:Play()
 
-task.wait(1.5)
+task.wait(1.2)
 
-local fadeTween = TweenService:Create(splashFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {
-    Position = UDim2.new(1, -splashWidth - 20, 1, splashHeight + 25),
+local fadeTween = TweenService:Create(splashFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
+    Position = UDim2.new(1, -splashWidth - 15, 1, splashHeight + 15),
     BackgroundTransparency = 1
 })
 fadeTween:Play()
-TweenService:Create(logo, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
-TweenService:Create(loaded, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
+TweenService:Create(logo, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
+TweenService:Create(loaded, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
 
 fadeTween.Completed:Connect(function()
     splash:Destroy()
