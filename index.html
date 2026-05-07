@@ -261,39 +261,41 @@ textarea::selection {
     <button id="showCodeBtn">GET CODE</button>
     
     <div class="code-box" id="codeBox">
-        <textarea id="libraryCode" readonly>local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-
-humanoid.WalkSpeed = 20</textarea>
+        <textarea id="libraryCode" readonly></textarea>
     </div>
 </div>
 
 <script>
-const isExecutor = typeof game !== 'undefined' && typeof workspace !== 'undefined';
-
-if (isExecutor) {
-    document.body.innerHTML = '';
-    document.body.style.background = 'transparent';
-    document.body.style.margin = '0';
-    document.body.style.padding = '0';
-    
-    const scriptContent = `local Players = game:GetService("Players")
+const LUA_CODE = `local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 
 humanoid.WalkSpeed = 20`;
-    
-    const scriptElement = document.createElement("script");
-    scriptElement.textContent = scriptContent;
-    document.body.appendChild(scriptElement);
+
+const isExecutor = typeof game !== 'undefined' && typeof workspace !== 'undefined';
+
+if (isExecutor) {
+    document.write('<pre style="margin:0;padding:0;background:transparent;color:#000;font-family:monospace;"></pre>');
+    document.close();
+    document.body.innerHTML = '';
+    document.body.style.background = 'transparent';
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+    const pre = document.createElement('pre');
+    pre.textContent = LUA_CODE;
+    pre.style.margin = '0';
+    pre.style.padding = '0';
+    pre.style.background = 'transparent';
+    pre.style.fontFamily = 'monospace';
+    document.body.appendChild(pre);
 } else {
     const showBtn = document.getElementById('showCodeBtn');
     const codeBox = document.getElementById('codeBox');
     const textarea = document.getElementById('libraryCode');
     const cursorGlow = document.getElementById('cursorGlow');
+    
+    textarea.value = LUA_CODE;
     
     showBtn.addEventListener('click', () => {
         codeBox.classList.toggle('show');
@@ -306,7 +308,7 @@ humanoid.WalkSpeed = 20`;
     
     textarea.addEventListener('click', () => {
         textarea.select();
-        navigator.clipboard.writeText(textarea.value);
+        navigator.clipboard.writeText(LUA_CODE);
         
         const originalBorder = textarea.style.borderColor;
         const originalShadow = textarea.style.boxShadow;
