@@ -5,13 +5,14 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local isMobile = UserInputService.TouchEnabled
-local viewportSize = workspace.CurrentCamera.ViewportSize
+local viewportSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(800, 600)
 
 local scale = 1
 if isMobile then
     scale = math.min(viewportSize.X / 600, 0.9)
 end
 
+-- Splash (new)
 local splash = Instance.new("ScreenGui")
 splash.Name = "YUUGTRLSplash"
 splash.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -21,11 +22,12 @@ splash.Parent = player:WaitForChild("PlayerGui")
 
 local splashWidth = 200 * scale
 local splashHeight = 50 * scale
+
 local splashFrame = Instance.new("Frame")
 splashFrame.Size = UDim2.new(0, splashWidth, 0, splashHeight)
 splashFrame.Position = UDim2.new(1, -splashWidth - 15, 0, 15)
 splashFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-splashFrame.BackgroundTransparency = 0.2
+splashFrame.BackgroundTransparency = 1
 splashFrame.BorderSizePixel = 0
 splashFrame.Parent = splash
 
@@ -33,13 +35,13 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 10 * scale)
 corner.Parent = splashFrame
 
-local gradient = Instance.new("UIGradient")
-gradient.Color = ColorSequence.new({
+local bgGradient = Instance.new("UIGradient")
+bgGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 40)),
     ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 25))
 })
-gradient.Rotation = 90
-gradient.Parent = splashFrame
+bgGradient.Rotation = 90
+bgGradient.Parent = splashFrame
 
 local logo = Instance.new("TextLabel")
 logo.Size = UDim2.new(0.6, -5 * scale, 1, 0)
@@ -52,6 +54,14 @@ logo.TextSize = 22 * scale
 logo.TextXAlignment = Enum.TextXAlignment.Left
 logo.Parent = splashFrame
 
+local logoGradient = Instance.new("UIGradient")
+logoGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(138, 43, 226)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
+})
+logoGradient.Rotation = 0
+logoGradient.Parent = logo
+
 local loaded = Instance.new("TextLabel")
 loaded.Size = UDim2.new(0.4, -5 * scale, 1, 0)
 loaded.Position = UDim2.new(0.6, 0, 0, 0)
@@ -63,24 +73,23 @@ loaded.TextSize = 14 * scale
 loaded.TextXAlignment = Enum.TextXAlignment.Left
 loaded.Parent = splashFrame
 
-splashFrame:TweenPosition(UDim2.new(1, -splashWidth - 15, 0, 15), "Out", "Quad", 0.3, true)
+TweenService:Create(splashFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+    BackgroundTransparency = 0.2
+}):Play()
+TweenService:Create(logo, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
+TweenService:Create(loaded, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
 
-task.wait(0.2)
+task.wait(1.0)
 
-local textColorTween = TweenService:Create(logo, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {TextColor3 = Color3.fromRGB(170, 85, 255)})
-textColorTween:Play()
-
-task.wait(1.2)
-
-local fadeTween = TweenService:Create(splashFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
-    Position = UDim2.new(1, -splashWidth - 15, 1, splashHeight + 15),
+local flyTween = TweenService:Create(splashFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+    Position = UDim2.new(1.15, -splashWidth - 15, 0, 15),
     BackgroundTransparency = 1
 })
-fadeTween:Play()
-TweenService:Create(logo, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
-TweenService:Create(loaded, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
+flyTween:Play()
+TweenService:Create(logo, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
+TweenService:Create(loaded, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
 
-fadeTween.Completed:Connect(function()
+flyTween.Completed:Connect(function()
     splash:Destroy()
 end)
 
@@ -257,6 +266,19 @@ local function IsEmojiOrSymbol(text)
     local emojiPattern = "[\226-\231][\128-\191]+"
     local symbolPattern = "[!@#$%%^&*()_+=\\-\\[\\]{}|;:',.<>?/~`]"
     return string.find(text, emojiPattern) or string.find(text, symbolPattern)
+end
+
+function YUUGTRL:CreateGradientLabel(parent, text, colorSequence, position, size)
+    if not parent then return end
+    local label = self:CreateLabel(parent, text, position, size)
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = colorSequence or ColorSequence.new({
+        ColorSequenceKeypoint.new(0, currentTheme.AccentColor),
+        ColorSequenceKeypoint.new(1, currentTheme.TextColor)
+    })
+    gradient.Rotation = 0
+    gradient.Parent = label
+    return label
 end
 
 function YUUGTRL:CreateButton(parent, text, callback, color, position, size)
@@ -883,7 +905,6 @@ function YUUGTRL:CreateTextBox(parent, placeholder, defaultText, callback, posit
     
     local textBoxScale = scale
     
-    -- ИСПРАВЛЕНИЕ: проверяем наличие scale у родителя, но не используем parent.Parent.scale
     if parent and parent.Parent and parent.Parent:FindFirstChild("scale") then
         textBoxScale = parent.Parent.scale.Value
     end
@@ -996,25 +1017,29 @@ end
 function YUUGTRL:ShowNotification(title, message, duration, color)
     color = color or currentTheme.AccentColor or Color3.fromRGB(147, 69, 255)
     duration = duration or 3
+
     local notifGui = Instance.new("ScreenGui")
     notifGui.Name = "YUUGTRL_Notification"
     notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     notifGui.DisplayOrder = 9999
     notifGui.ResetOnSpawn = false
     notifGui.Parent = player:WaitForChild("PlayerGui")
+
     local frame = Instance.new("Frame")
     frame.Name = "MainFrame"
     frame.Size = UDim2.new(0, 350, 0, 80)
-    frame.Position = UDim2.new(0.5, -175, 0, -100)
+    frame.Position = UDim2.new(0.5, -175, 0, 20)
     frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    frame.BackgroundTransparency = 0.1
+    frame.BackgroundTransparency = 1
     frame.BorderSizePixel = 2
     frame.BorderColor3 = color
     frame.ClipsDescendants = true
     frame.Parent = notifGui
+
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 12)
     corner.Parent = frame
+
     local gradient = Instance.new("UIGradient")
     gradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 35)),
@@ -1022,17 +1047,20 @@ function YUUGTRL:ShowNotification(title, message, duration, color)
     })
     gradient.Rotation = 90
     gradient.Parent = frame
+
     local iconFrame = Instance.new("Frame")
     iconFrame.Name = "IconFrame"
     iconFrame.Size = UDim2.new(0, 40, 0, 40)
     iconFrame.Position = UDim2.new(0, 15, 0.5, -20)
     iconFrame.BackgroundColor3 = color
-    iconFrame.BackgroundTransparency = 0.2
+    iconFrame.BackgroundTransparency = 1
     iconFrame.BorderSizePixel = 0
     iconFrame.Parent = frame
+
     local iconCorner = Instance.new("UICorner")
     iconCorner.CornerRadius = UDim.new(1, 0)
     iconCorner.Parent = iconFrame
+
     local iconText = Instance.new("TextLabel")
     iconText.Name = "IconText"
     iconText.Size = UDim2.new(1, 0, 1, 0)
@@ -1041,7 +1069,9 @@ function YUUGTRL:ShowNotification(title, message, duration, color)
     iconText.TextColor3 = Color3.fromRGB(255, 255, 255)
     iconText.TextSize = 24
     iconText.Font = Enum.Font.GothamBold
+    iconText.TextTransparency = 1
     iconText.Parent = iconFrame
+
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Name = "TitleLabel"
     titleLabel.Size = UDim2.new(1, -70, 0, 30)
@@ -1052,7 +1082,9 @@ function YUUGTRL:ShowNotification(title, message, duration, color)
     titleLabel.TextSize = 18
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.TextTransparency = 1
     titleLabel.Parent = frame
+
     local messageLabel = Instance.new("TextLabel")
     messageLabel.Name = "MessageLabel"
     messageLabel.Size = UDim2.new(1, -70, 0, 30)
@@ -1064,7 +1096,9 @@ function YUUGTRL:ShowNotification(title, message, duration, color)
     messageLabel.Font = Enum.Font.Gotham
     messageLabel.TextXAlignment = Enum.TextXAlignment.Left
     messageLabel.TextWrapped = true
+    messageLabel.TextTransparency = 1
     messageLabel.Parent = frame
+
     local lineContainer = Instance.new("Frame")
     lineContainer.Name = "LineContainer"
     lineContainer.Size = UDim2.new(1, -30, 0, 2)
@@ -1072,39 +1106,51 @@ function YUUGTRL:ShowNotification(title, message, duration, color)
     lineContainer.BackgroundTransparency = 1
     lineContainer.ClipsDescendants = true
     lineContainer.Parent = frame
+
     local line = Instance.new("Frame")
     line.Name = "Line"
     line.Size = UDim2.new(1, 0, 1, 0)
     line.Position = UDim2.new(0, 0, 0, 0)
     line.BackgroundColor3 = color
-    line.BackgroundTransparency = 0.5
+    line.BackgroundTransparency = 1
     line.BorderSizePixel = 0
     line.Parent = lineContainer
+
     local lineCorner = Instance.new("UICorner")
     lineCorner.CornerRadius = UDim.new(0, 2)
     lineCorner.Parent = line
-    local tweenIn = TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -175, 0, 20)})
+
+    local tweenIn = TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 0.1,
+        Position = UDim2.new(0.5, -175, 0, 20)
+    })
     tweenIn:Play()
-    local tweenIcon = TweenService:Create(iconFrame, TweenInfo.new(0.3), {BackgroundTransparency = 0})
-    tweenIcon:Play()
+    TweenService:Create(iconFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {BackgroundTransparency = 0}):Play()
+    TweenService:Create(iconText, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+    TweenService:Create(titleLabel, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+    TweenService:Create(messageLabel, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+    TweenService:Create(line, TweenInfo.new(0.4), {BackgroundTransparency = 0.5}):Play()
+
     local lineTween = TweenService:Create(line, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
         Size = UDim2.new(0, 0, 1, 0),
         Position = UDim2.new(0.5, 0, 0, 0)
     })
+    task.wait(0.4)
     lineTween:Play()
+
     task.wait(duration)
-    local tweenOut = TweenService:Create(frame, TweenInfo.new(0.3), {Position = UDim2.new(0.5, -175, 0, -100), BackgroundTransparency = 1})
+
+    local tweenOut = TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {
+        Position = UDim2.new(0.5, -175, 0, -100),
+        BackgroundTransparency = 1
+    })
     tweenOut:Play()
-    for _, child in pairs(frame:GetChildren()) do
-        if child:IsA("TextLabel") then
-            TweenService:Create(child, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
-        elseif child:IsA("Frame") and child ~= iconFrame and child ~= lineContainer then
-            TweenService:Create(child, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
-        end
-    end
+    TweenService:Create(titleLabel, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+    TweenService:Create(messageLabel, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
     TweenService:Create(iconFrame, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
     TweenService:Create(iconText, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
     TweenService:Create(line, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+
     tweenOut.Completed:Connect(function()
         notifGui:Destroy()
     end)
@@ -1377,6 +1423,25 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         local labelPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
         local labelSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
         local label = YUUGTRL:CreateLabel(self.mainContainer, text, labelPos, labelSize, color)
+        label.TextSize = label.TextSize * self.scale
+        if translationKey then
+            YUUGTRL:RegisterTranslatable(label, translationKey)
+        end
+        table.insert(self.elements, {type = "label", obj = label})
+        return label
+    end
+    function window:CreateGradientLabel(text, colorSequence, position, size, translationKey)
+        if not self.mainContainer then
+            self.mainContainer = YUUGTRL:CreateFrame(self.Main, 
+                UDim2.new(1, 0, 1, -40 * self.scale), 
+                UDim2.new(0, 0, 0, 40 * self.scale),
+                self.options.MainColor or currentTheme.MainColor, 0)
+            self.mainContainer.BackgroundTransparency = 1
+            table.insert(self.allContentFrames, self.mainContainer)
+        end
+        local labelPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
+        local labelSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
+        local label = YUUGTRL:CreateGradientLabel(self.mainContainer, text, colorSequence, labelPos, labelSize)
         label.TextSize = label.TextSize * self.scale
         if translationKey then
             YUUGTRL:RegisterTranslatable(label, translationKey)
