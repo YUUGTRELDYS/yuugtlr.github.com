@@ -12,7 +12,7 @@ if isMobile then
     scale = math.min(viewportSize.X / 600, 0.9)
 end
 
--- Splash (new)
+-- Splash
 local splash = Instance.new("ScreenGui")
 splash.Name = "YUUGTRLSplash"
 splash.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -48,26 +48,18 @@ logo.Size = UDim2.new(0.6, -5 * scale, 1, 0)
 logo.Position = UDim2.new(0, 8 * scale, 0, 0)
 logo.BackgroundTransparency = 1
 logo.Text = "YUUGTRL"
-logo.TextColor3 = Color3.fromRGB(255, 255, 255)
+logo.TextColor3 = Color3.fromRGB(120, 0, 255)
 logo.Font = Enum.Font.GothamBold
 logo.TextSize = 22 * scale
 logo.TextXAlignment = Enum.TextXAlignment.Left
 logo.Parent = splashFrame
-
-local logoGradient = Instance.new("UIGradient")
-logoGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(138, 43, 226)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
-})
-logoGradient.Rotation = 0
-logoGradient.Parent = logo
 
 local loaded = Instance.new("TextLabel")
 loaded.Size = UDim2.new(0.4, -5 * scale, 1, 0)
 loaded.Position = UDim2.new(0.6, 0, 0, 0)
 loaded.BackgroundTransparency = 1
 loaded.Text = "loaded"
-loaded.TextColor3 = Color3.fromRGB(255, 255, 255)
+loaded.TextColor3 = Color3.fromRGB(160, 80, 255)
 loaded.Font = Enum.Font.Gotham
 loaded.TextSize = 14 * scale
 loaded.TextXAlignment = Enum.TextXAlignment.Left
@@ -82,7 +74,7 @@ TweenService:Create(loaded, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {TextTran
 task.wait(1.0)
 
 local flyTween = TweenService:Create(splashFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-    Position = UDim2.new(1.15, -splashWidth - 15, 0, 15),
+    Position = UDim2.new(1, -splashWidth - 15, 1.3, 15),
     BackgroundTransparency = 1
 })
 flyTween:Play()
