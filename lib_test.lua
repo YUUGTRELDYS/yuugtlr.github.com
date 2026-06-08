@@ -246,6 +246,14 @@ function YUUGTRL:UpdateAllTexts()
     end
 end
 
+local function ToColorSequence(grad)
+    if typeof(grad) == "ColorSequence" then return grad end
+    if type(grad) == "table" then
+        return ColorSequence.new(grad)
+    end
+    return grad
+end
+
 local function Create(props)
     local obj = Instance.new(props.type)
     for i, v in pairs(props) do
@@ -312,7 +320,7 @@ function YUUGTRL:CreateButton(parent, text, callback, color, position, size, gra
         BackgroundColor3 = btnColor,
         Text = text or "Button",
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        Font = Enum.Font.Gotham,
+        Font = Enum.Font.GothamBold,
         TextSize = 14 * scale,
         Parent = parent
     })
@@ -1250,7 +1258,7 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     })
     Create({type = "UICorner",CornerRadius = UDim.new(0, 12 * winScale),Parent = Main})
     if options.MainGradient then
-        Create({type = "UIGradient", Color = options.MainGradient, Parent = Main})
+        Create({type = "UIGradient", Color = ToColorSequence(options.MainGradient), Parent = Main})
     end
     local Header = Create({
         type = "Frame",
@@ -1261,13 +1269,13 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     })
     Create({type = "UICorner",CornerRadius = UDim.new(0, 12 * winScale),Parent = Header})
     if options.HeaderGradient then
-        Create({type = "UIGradient", Color = options.HeaderGradient, Parent = Header})
+        Create({type = "UIGradient", Color = ToColorSequence(options.HeaderGradient), Parent = Header})
     end
     local Title = self:CreateLabel(Header, title, UDim2.new(0, 15 * winScale, 0, 0), UDim2.new(1, -100 * winScale, 1, 0), options.TextColor or currentTheme.TextColor)
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.TextSize = 18 * winScale
     if options.TitleGradient then
-        local tg = Create({type = "UIGradient", Color = options.TitleGradient, Parent = Title})
+        local tg = Create({type = "UIGradient", Color = ToColorSequence(options.TitleGradient), Parent = Title})
     end
     if options.titleKey then
         self:RegisterTranslatable(Title, options.titleKey)
@@ -1349,25 +1357,25 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     function window:SetHeaderGradient(seq)
         local g = self.Header:FindFirstChildOfClass("UIGradient")
         if g then
-            g.Color = seq
+            g.Color = ToColorSequence(seq)
         else
-            Create({type = "UIGradient", Color = seq, Parent = self.Header})
+            Create({type = "UIGradient", Color = ToColorSequence(seq), Parent = self.Header})
         end
     end
     function window:SetMainGradient(seq)
         local g = self.Main:FindFirstChildOfClass("UIGradient")
         if g then
-            g.Color = seq
+            g.Color = ToColorSequence(seq)
         else
-            Create({type = "UIGradient", Color = seq, Parent = self.Main})
+            Create({type = "UIGradient", Color = ToColorSequence(seq), Parent = self.Main})
         end
     end
     function window:SetTitleGradient(seq)
         local g = self.Title:FindFirstChildOfClass("UIGradient")
         if g then
-            g.Color = seq
+            g.Color = ToColorSequence(seq)
         else
-            Create({type = "UIGradient", Color = seq, Parent = self.Title})
+            Create({type = "UIGradient", Color = ToColorSequence(seq), Parent = self.Title})
         end
     end
     function window:SetTextColor(color)
@@ -1747,7 +1755,7 @@ function YUUGTRL:CreateLabel(parent, text, position, size, color)
         BackgroundTransparency = 1,
         Text = text or "Label",
         TextColor3 = color or currentTheme.TextColor,
-        Font = Enum.Font.Gotham,
+        Font = Enum.Font.GothamBold,
         TextSize = 14 * scale,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent = parent
