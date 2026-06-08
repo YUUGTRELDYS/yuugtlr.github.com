@@ -98,17 +98,17 @@ local currentLanguage = "English"
 local translatableElements = {}
 local themes = {
     dark = {
-        MainColor = Color3.fromRGB(30, 30, 40),
-        HeaderColor = Color3.fromRGB(40, 40, 50),
+        MainColor = Color3.fromRGB(40, 38, 55),
+        HeaderColor = Color3.fromRGB(50, 48, 65),
         TextColor = Color3.fromRGB(255, 255, 255),
-        AccentColor = Color3.fromRGB(80, 100, 220),
-        ButtonColor = Color3.fromRGB(60, 100, 200),
-        FrameColor = Color3.fromRGB(35, 35, 45),
-        InputColor = Color3.fromRGB(40, 40, 50),
-        ScrollBarColor = Color3.fromRGB(100, 100, 150),
-        DangerColor = Color3.fromRGB(255, 100, 100),
-        SuccessColor = Color3.fromRGB(100, 255, 100),
-        WarningColor = Color3.fromRGB(255, 200, 100)
+        AccentColor = Color3.fromRGB(120, 140, 255),
+        ButtonColor = Color3.fromRGB(80, 120, 220),
+        FrameColor = Color3.fromRGB(45, 43, 60),
+        InputColor = Color3.fromRGB(50, 48, 65),
+        ScrollBarColor = Color3.fromRGB(150, 140, 220),
+        DangerColor = Color3.fromRGB(255, 120, 120),
+        SuccessColor = Color3.fromRGB(120, 255, 120),
+        WarningColor = Color3.fromRGB(255, 220, 120)
     },
     black = {
         MainColor = Color3.fromRGB(10, 10, 10),
@@ -268,6 +268,27 @@ local function IsEmojiOrSymbol(text)
     return string.find(text, emojiPattern) or string.find(text, symbolPattern)
 end
 
+function YUUGTRL:CreateGradientButton(parent, text, callback, color, position, size, textGradient)
+    if not parent then return end
+    local btn = self:CreateButton(parent, "", callback, color, position, size)
+    local gradLabel = Instance.new("TextLabel")
+    gradLabel.Size = UDim2.new(1, -10, 1, 0)
+    gradLabel.Position = UDim2.new(0, 5, 0, 0)
+    gradLabel.BackgroundTransparency = 1
+    gradLabel.Text = text or "Button"
+    gradLabel.Font = Enum.Font.Gotham
+    gradLabel.TextSize = 14 * scale
+    gradLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    gradLabel.Parent = btn
+    if textGradient then
+        local g = Instance.new("UIGradient")
+        g.Color = textGradient
+        g.Rotation = 0
+        g.Parent = gradLabel
+    end
+    return btn
+end
+
 function YUUGTRL:CreateGradientLabel(parent, text, colorSequence, position, size)
     if not parent then return end
     local label = self:CreateLabel(parent, text, position, size)
@@ -281,7 +302,7 @@ function YUUGTRL:CreateGradientLabel(parent, text, colorSequence, position, size
     return label
 end
 
-function YUUGTRL:CreateButton(parent, text, callback, color, position, size)
+function YUUGTRL:CreateButton(parent, text, callback, color, position, size, gradientSeq)
     if not parent then return end
     local btnColor = color or currentTheme.ButtonColor
     local btn = Create({
@@ -291,7 +312,7 @@ function YUUGTRL:CreateButton(parent, text, callback, color, position, size)
         BackgroundColor3 = btnColor,
         Text = text or "Button",
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        Font = Enum.Font.GothamBold,
+        Font = Enum.Font.Gotham,
         TextSize = 14 * scale,
         Parent = parent
     })
@@ -1040,13 +1061,13 @@ function YUUGTRL:ShowNotification(title, message, duration, color)
     corner.CornerRadius = UDim.new(0, 12)
     corner.Parent = frame
 
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 35)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 25))
+    local bgGrad = Instance.new("UIGradient")
+    bgGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(45, 40, 60)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 20, 35))
     })
-    gradient.Rotation = 90
-    gradient.Parent = frame
+    bgGrad.Rotation = 90
+    bgGrad.Parent = frame
 
     local iconFrame = Instance.new("Frame")
     iconFrame.Name = "IconFrame"
@@ -1060,6 +1081,18 @@ function YUUGTRL:ShowNotification(title, message, duration, color)
     local iconCorner = Instance.new("UICorner")
     iconCorner.CornerRadius = UDim.new(1, 0)
     iconCorner.Parent = iconFrame
+
+    local iconGrad = Instance.new("UIGradient")
+    iconGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(
+            math.min(color.R * 255 + 80, 255),
+            math.min(color.G * 255 + 80, 255),
+            math.min(color.B * 255 + 80, 255)
+        )),
+        ColorSequenceKeypoint.new(1, color)
+    })
+    iconGrad.Rotation = 135
+    iconGrad.Parent = iconFrame
 
     local iconText = Instance.new("TextLabel")
     iconText.Name = "IconText"
@@ -1078,12 +1111,18 @@ function YUUGTRL:ShowNotification(title, message, duration, color)
     titleLabel.Position = UDim2.new(0, 65, 0, 10)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = title
-    titleLabel.TextColor3 = color
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     titleLabel.TextSize = 18
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.TextTransparency = 1
     titleLabel.Parent = frame
+    local titleGrad = Instance.new("UIGradient")
+    titleGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 150, 255)),
+        ColorSequenceKeypoint.new(1, color)
+    })
+    titleGrad.Parent = titleLabel
 
     local messageLabel = Instance.new("TextLabel")
     messageLabel.Name = "MessageLabel"
@@ -1091,13 +1130,19 @@ function YUUGTRL:ShowNotification(title, message, duration, color)
     messageLabel.Position = UDim2.new(0, 65, 0, 40)
     messageLabel.BackgroundTransparency = 1
     messageLabel.Text = message
-    messageLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    messageLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     messageLabel.TextSize = 14
     messageLabel.Font = Enum.Font.Gotham
     messageLabel.TextXAlignment = Enum.TextXAlignment.Left
     messageLabel.TextWrapped = true
     messageLabel.TextTransparency = 1
     messageLabel.Parent = frame
+    local msgGrad = Instance.new("UIGradient")
+    msgGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(220, 220, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 200))
+    })
+    msgGrad.Parent = messageLabel
 
     local lineContainer = Instance.new("Frame")
     lineContainer.Name = "LineContainer"
@@ -1111,10 +1156,21 @@ function YUUGTRL:ShowNotification(title, message, duration, color)
     line.Name = "Line"
     line.Size = UDim2.new(1, 0, 1, 0)
     line.Position = UDim2.new(0, 0, 0, 0)
-    line.BackgroundColor3 = color
+    line.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     line.BackgroundTransparency = 1
     line.BorderSizePixel = 0
     line.Parent = lineContainer
+    local lineGrad = Instance.new("UIGradient")
+    lineGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(
+            math.min(color.R * 255 + 60, 255),
+            math.min(color.G * 255 + 60, 255),
+            math.min(color.B * 255 + 60, 255)
+        )),
+        ColorSequenceKeypoint.new(1, color)
+    })
+    lineGrad.Rotation = 0
+    lineGrad.Parent = line
 
     local lineCorner = Instance.new("UICorner")
     lineCorner.CornerRadius = UDim.new(0, 2)
@@ -1337,12 +1393,11 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     function window:Minimize()
         if self.isMinimized then return end
         self.isMinimized = true
-        if self.mainContainer then
-            self.mainContainer.Visible = false
-        end
-        for _, frame in pairs(self.allContentFrames) do
-            if frame then
-                frame.Visible = false
+        self._savedVisibility = {}
+        for _, child in pairs(self.Main:GetChildren()) do
+            if child ~= self.Header and child:IsA("GuiObject") then
+                self._savedVisibility[child] = child.Visible
+                child.Visible = false
             end
         end
         self.Main:TweenSize(self.minimizedSize, "Out", "Quad", 0.3, true)
@@ -1369,14 +1424,14 @@ function YUUGTRL:CreateWindow(title, size, position, options)
     function window:Maximize()
         if not self.isMinimized then return end
         self.isMinimized = false
-        if self.mainContainer then
-            self.mainContainer.Visible = true
-        end
-        for _, frame in pairs(self.allContentFrames) do
-            if frame then
-                frame.Visible = true
+        for _, child in pairs(self.Main:GetChildren()) do
+            if child ~= self.Header and child:IsA("GuiObject") and self._savedVisibility then
+                if self._savedVisibility[child] ~= nil then
+                    child.Visible = self._savedVisibility[child]
+                end
             end
         end
+        self._savedVisibility = nil
         self.Main:TweenSize(originalSize, "Out", "Quad", 0.3, true)
         if self.HideBtn then
             local grad = self.HideBtn:FindFirstChildOfClass("UIGradient")
@@ -1481,6 +1536,24 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         end
         table.insert(self.elements, {type = "label", obj = label})
         return label
+    end
+    function window:CreateGradientButton(text, callback, color, position, size, textGradient, translationKey)
+        if not self.mainContainer then
+            self.mainContainer = YUUGTRL:CreateFrame(self.Main, 
+                UDim2.new(1, 0, 1, -40 * self.scale), 
+                UDim2.new(0, 0, 0, 40 * self.scale),
+                self.options.MainColor or currentTheme.MainColor, 0)
+            self.mainContainer.BackgroundTransparency = 1
+            table.insert(self.allContentFrames, self.mainContainer)
+        end
+        local btnPos = position and UDim2.new(position.X.Scale, position.X.Offset * self.scale, position.Y.Scale, position.Y.Offset * self.scale) or nil
+        local btnSize = size and UDim2.new(size.X.Scale, size.X.Offset * self.scale, size.Y.Scale, size.Y.Offset * self.scale) or nil
+        local btn = YUUGTRL:CreateGradientButton(self.mainContainer, text, callback, color, btnPos, btnSize, textGradient)
+        if translationKey then
+            YUUGTRL:RegisterTranslatable(btn, translationKey)
+        end
+        table.insert(self.elements, {type = "button", obj = btn})
+        return btn
     end
     function window:CreateButton(text, callback, color, position, size, translationKey)
         if not self.mainContainer then
@@ -1674,7 +1747,7 @@ function YUUGTRL:CreateLabel(parent, text, position, size, color)
         BackgroundTransparency = 1,
         Text = text or "Label",
         TextColor3 = color or currentTheme.TextColor,
-        Font = Enum.Font.GothamBold,
+        Font = Enum.Font.Gotham,
         TextSize = 14 * scale,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent = parent
@@ -1715,4 +1788,3 @@ function YUUGTRL:CreateSlider(parent, text, min, max, default, callback, positio
 end
 
 return YUUGTRL
-
