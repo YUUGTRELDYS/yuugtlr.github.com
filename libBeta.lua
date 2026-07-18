@@ -1,4 +1,3 @@
-
 local YUUGTRL = {}
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -1128,8 +1127,12 @@ function YUUGTRL:ShowNotification(title, message, duration, color)
     titleLabel.Parent = frame
     local titleGrad = Instance.new("UIGradient")
     titleGrad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 150, 255)),
-        ColorSequenceKeypoint.new(1, color)
+        ColorSequenceKeypoint.new(0, color),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(
+            math.max(color.R * 255 - 50, 0),
+            math.max(color.G * 255 - 50, 0),
+            math.max(color.B * 255 - 50, 0)
+        ))
     })
     titleGrad.Parent = titleLabel
 
@@ -1247,7 +1250,7 @@ function YUUGTRL:CreateWindow(title, size, position, options)
         type = "ScreenGui",
         Name = "YUUGTRL_" .. (title:gsub("%s+", "") or "Window"),
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-        DisplayOrder = 999,
+        DisplayOrder = options.DisplayOrder or 9999,
         ResetOnSpawn = false,
         Parent = player:WaitForChild("PlayerGui")
     })
