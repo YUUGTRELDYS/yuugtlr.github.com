@@ -1,9 +1,16 @@
 local YUUGTRL = {}
+if getgenv and getgenv().YUUGTRL_SHARED then
+    return getgenv().YUUGTRL_SHARED
+end
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
+while not player do
+    task.wait(0.1)
+    player = Players.LocalPlayer
+end
 local isMobile = UserInputService.TouchEnabled
 local viewportSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(800, 600)
 
@@ -12,13 +19,18 @@ if isMobile then
     scale = math.min(viewportSize.X / 600, 0.9)
 end
 
--- Splash
+pcall(function()
+    local oldSplash = player:FindFirstChild("PlayerGui") and player.PlayerGui:FindFirstChild("YUUGTRLSplash")
+    if oldSplash then oldSplash:Destroy() end
+end)
 local splash = Instance.new("ScreenGui")
 splash.Name = "YUUGTRLSplash"
 splash.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 splash.DisplayOrder = 9999
 splash.ResetOnSpawn = false
-splash.Parent = player:WaitForChild("PlayerGui")
+pcall(function()
+    splash.Parent = player:WaitForChild("PlayerGui", 15)
+end)
 
 local splashWidth = 200 * scale
 local splashHeight = 50 * scale
@@ -1150,7 +1162,8 @@ end
 
 function YUUGTRL:CreateWindow(title, size, position, options)
     options = options or {}
-    local screenSize = workspace.CurrentCamera.ViewportSize
+    local cam = workspace.CurrentCamera
+    local screenSize = cam and cam.ViewportSize or Vector2.new(1280, 720)
     local winScale = 1
     if isMobile then
         winScale = math.min(screenSize.X / 600, 0.9)
@@ -1642,12 +1655,15 @@ end
 
 function YUUGTRL:CreateSlider(parent, text, min, max, default, callback, position, size)
     if not parent then return end
+    min = tonumber(min) or 0
+    max = tonumber(max) or 1
+    if max == min then max = min + 1 end
     local frame = self:CreateFrame(parent, size or UDim2.new(0, 200 * scale, 0, 50 * scale), position, currentTheme.FrameColor, 8 * scale)
     self:CreateLabel(frame, text or "", UDim2.new(0, 10 * scale, 0, 5 * scale), UDim2.new(1, -60 * scale, 0, 20 * scale))
     local valueLabel = self:CreateLabel(frame, tostring(default or 0), UDim2.new(1, -50 * scale, 0, 5 * scale), UDim2.new(0, 40 * scale, 0, 20 * scale))
     valueLabel.TextXAlignment = Enum.TextXAlignment.Right
     local slider = self:CreateFrame(frame, UDim2.new(1, -20 * scale, 0, 8 * scale), UDim2.new(0, 10 * scale, 0, 30 * scale), Color3.fromRGB(60, 60, 70), 4 * scale)
-    local fill = self:CreateFrame(slider, UDim2.new((default or 0) / max, 0, 1, 0), UDim2.new(0, 0, 0, 0), currentTheme.AccentColor, 4 * scale)
+    local fill = self:CreateFrame(slider, UDim2.new(((tonumber(default) or min) - min) / (max - min), 0, 1, 0), UDim2.new(0, 0, 0, 0), currentTheme.AccentColor, 4 * scale)
     local dragging = false
     slider.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -1671,6 +1687,10 @@ function YUUGTRL:CreateSlider(parent, text, min, max, default, callback, positio
         end
     end)
     return slider
+end
+
+if getgenv then
+    getgenv().YUUGTRL_SHARED = YUUGTRL
 end
 
 return YUUGTRL
